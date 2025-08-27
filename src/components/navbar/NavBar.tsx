@@ -166,12 +166,12 @@ const NavBar = () => {
   return (
     <>
       <div className="border-b sticky top-0 z-[90] border-b-black/20 bg-white">
-      <div>
+      {/* <div>
       <p>{user?.email}</p>
       <p>{userDetails?.email}</p>
       <p>{userDetails?.username}</p>
       <button onClick={() => signOut()}>logout</button>
-      </div>
+      </div> */}
 
 
         <div className="flex items-center justify-between p-4 py-5 sticky top-0 container mx-auto gap-10">

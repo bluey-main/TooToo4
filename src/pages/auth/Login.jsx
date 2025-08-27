@@ -15,7 +15,9 @@ const defaultValue = {
 };
 
 export const Login = () => {
-  const { signInWithEmail, signInWithGoogle } = useAuth();
+  // const { signInWithEmail, signInWithGoogle } = useAuth();
+    const { signInWithEmail, signInWithGoogle } = useAuth()
+
   const [formField, setFormField] = useState(defaultValue);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -58,6 +60,34 @@ export const Login = () => {
     }
   }
 
+  
+    // const handleEmailAuth = async (e: React.FormEvent) => {
+    //   e.preventDefault()
+    //   setLoading(true)
+    //   setError(null)
+  
+    //   try {
+    //     const { error } = isSignUp 
+    //       ? await signUpWithEmail(email, password)
+    //       : await signInWithEmail(email, password)
+  
+    //     if (error) {
+    //       setError(error.message)
+    //     }
+    //   } catch (err) {
+    //     setError('An unexpected error occurred')
+    //   } finally {
+    //     setLoading(false)
+    //   }
+    // }
+  
+    // const handleGoogleAuth = async () => {
+    //   const { error } = await signInWithGoogle()
+    //   if (error) {
+    //     setError(error.message)
+    //   }
+    // }
+
   return (
     <>
       <div className="flex min-h-full flex-1 flex-col justify-center px-6 lg:px-6">
@@ -90,7 +120,7 @@ export const Login = () => {
                 Forgot Password?
               </Link>
             </p>
-            <AuthButton isLoading={isLoading} />
+            <AuthButton isLoading={isLoading} title={"Sign In"} />
           </form>
 
           <p className="mt-10 text-center text-sm text-gray-500">

@@ -444,11 +444,11 @@ const SellerProvider: React.FC<SellerProviderProps> = ({ children }) => {
           "imageStorageFileName",
           "imageUrls",
           "tags",
-          "variations",
+          // "variations",
           "id",
           "sellerId",
-          "updatedAt",
-          "createdAt",
+          // "updatedAt",
+          // "createdAt",
         ].includes(key)
       ) {
         continue;
@@ -471,7 +471,7 @@ const SellerProvider: React.FC<SellerProviderProps> = ({ children }) => {
       if (
         !validateProductDetails(productDetails) ||
         (selectedFiles.length === 0 && productDetails.image_urls.length === 0) ||
-        (variations.length === 0 && productDetails.variations.length === 0) ||
+        // (variations.length === 0 && productDetails.variations.length === 0) ||
         (tags.length === 0 && productDetails.tags.length === 0)
       ) {
         toast.error("Fill all fields");

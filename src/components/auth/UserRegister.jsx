@@ -9,10 +9,10 @@ import { FcGoogle } from 'react-icons/fc';
 import { Input } from "../input";
 
 const defaultValue = {
-  first_name: "",
-  last_name: "",
+  // first_name: "",
+  // last_name: "",
   email_address: "",
-  username: "",
+  // username: "",
   password: "",
   confirm_password: "",
 };
@@ -31,7 +31,10 @@ const UserRegister = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setstate("loading");
-    const { email_address, password, confirm_password, username, first_name, last_name } = formField;
+    // const { email_address, password, confirm_password,  first_name, last_name } = formField;
+
+    const { email_address, password, confirm_password, } = formField;
+
 
     if (password !== confirm_password) {
       toast.error("passwords do not match");
@@ -51,7 +54,7 @@ const UserRegister = () => {
       const { error: profileError } = await supabase
         .from("users")
         .update({
-          username,
+          // username,
           firstName: first_name,
           lastName: last_name,
         })

@@ -96,14 +96,14 @@ const router = createBrowserRouter([
     path: "/auth",
     element: <AuthRoot />,
     children: [
-      {
-        path: "login",
-        element: <LoginTest />,
-      },
-      //   {
+      // {
       //   path: "login",
-      //   element: <Login />,
+      //   element: <LoginTest />,
       // },
+        {
+        path: "login",
+        element: <Login />,
+      },
       {
         path: "forgot-password",
         element: <ForgotPassword />,
