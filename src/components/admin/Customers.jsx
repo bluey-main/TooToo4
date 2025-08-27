@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import { useNavigate } from "react-router";
 
+
 const Customers = () => {
   const [customers, setCustomers] = useState([]);
   const navigate = useNavigate();
@@ -9,12 +10,13 @@ const Customers = () => {
   useEffect(() => {
     const fetchCustomers = async () => {
       const { data, error } = await supabase
-        .from("users")
+        .from("profiles")
         .select("*")
         .eq("role", "user");
       if (error) {
         console.log(error);
       } else {
+        console.log("Data",data);
         setCustomers(data);
       }
     };
@@ -48,9 +50,9 @@ const Customers = () => {
                 className="bg-white border-b cursor-pointer hover:bg-gray-50 "
                 key={key}
               >
-                <td className="px-6 py-4">{customer.username}</td>
+                <td className="px-6 py-4">{`${customer.first_name} ${customer.last_name}`}</td>
                 <td className="px-6 py-4">{customer.email}</td>
-                <td className="px-6 py-4">{customer.phoneNumber}</td>
+                <td className="px-6 py-4">{customer.phone_number}</td>
                 <td className="px-6 py-4">{customer.role}</td>
               </tr>
             );

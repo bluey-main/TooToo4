@@ -9,9 +9,10 @@ const Vendor = () => {
   const [vendor,setVendor] = useState([]);
   const [products,setProducts] = useState([]);
   const [joinedDate,setJoinedDate] = useState("");
-  
+
+
   const vendorFunction = async function(){
-    const { data: vendor, error } = await supabase.from("users").select("*").eq("id", id).single();
+    const { data: vendor, error } = await supabase.from("profiles").select("*").eq("id", id).single();
     if (error) {
       console.error("Error fetching vendor:", error);
       return;
@@ -22,7 +23,7 @@ const Vendor = () => {
   }
   
   const allProducts = async function(){
-    const { data: products, error } = await supabase.from("products").select("*").eq("sellerId", id);
+    const { data: products, error } = await supabase.from("products").select("*").eq("seller_id", id);
     if (error) {
       console.error("Error fetching products:", error);
       return;
@@ -38,32 +39,79 @@ const Vendor = () => {
   },[])
 
 
-  const findVendor = async (id) => {
-    const { data: vendor, error } = await supabase.from("users").select("isRestricted").eq("id", id).single();
-    if (error) {
-      console.error("Error fetching vendor:", error);
+const findVendor = async (id) => {
+  try {
+    console.log("Starting update for ID:", id);
+    
+    // Check current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError) {
+      console.error("Error getting current user:", userError);
+    } else {
+      console.log("Current user ID:", user?.id);
+      console.log("Target vendor ID:", id);
+      console.log("Are they the same?", user?.id === id);
+    }
+    
+    // First, fetch the current vendor data
+    const { data: vendor, error: fetchError } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (fetchError) {
+      console.error("Error fetching vendor:", fetchError);
       return;
     }
-  
-    if (vendor && vendor.isRestricted) {
-      const { error: updateError } = await supabase.from("users").update({ isRestricted: false }).eq("id", id);
-      if (updateError) {
-        console.error("Error updating vendor restriction:", updateError);
-        return;
-      }
-    } else {
-      const { error: updateError } = await supabase.from("users").update({ isRestricted: true }).eq("id", id);
-      if (updateError) {
-        console.error("Error updating vendor restriction:", updateError);
-        return;
-      }
+    
+    console.log("Current vendor data:", vendor);
+    console.log("Current is_restricted value:", vendor.is_restricted);
+    
+    // Toggle the is_restricted value
+    const newRestrictedValue = !vendor.is_restricted;
+    console.log("New is_restricted value will be:", newRestrictedValue);
+    
+    // Update the database - let's check how many rows were affected
+    const { error: updateError, count } = await supabase
+      .from("profiles")
+      .update({ is_restricted: newRestrictedValue })
+      .eq("id", id)
+      .select('*', { count: 'exact' });
+      
+    if (updateError) {
+      console.error("Error updating vendor restriction:", updateError);
+      console.error("Update error details:", JSON.stringify(updateError, null, 2));
+      return;
     }
-  
-    setVendor([{...vendor,isRestricted:!vendor.isRestricted}])
-  };
-  const restrictVendor = ()=>{
-    findVendor(id);
+
+    console.log("Database update successful!");
+    console.log("Number of rows affected by update:", count);
+    
+    // Verify the update by fetching again
+    const { data: verifyData, error: verifyError } = await supabase
+      .from("profiles")
+      .select("is_restricted")
+      .eq("id", id)
+      .single();
+      
+    if (verifyError) {
+      console.error("Error verifying update:", verifyError);
+    } else {
+      console.log("Verification - Current database value:", verifyData.is_restricted);
+    }
+
+    // Update local state if needed
+    // setVendor([{...vendor, is_restricted: newRestrictedValue}])
+    
+  } catch (error) {
+    console.error("Unexpected error in findVendor:", error);
   }
+};
+
+const restrictVendor = () => {
+  findVendor(id);
+}
 
 
   return (
@@ -79,27 +127,29 @@ const Vendor = () => {
           <section key={vendor.uid} className="grid grid-cols-3 gap-4 grid-flow-row-dense max-xl:grid-cols-2 max-lg:grid-cols-1">
             <div className="bg-white rounded-lg h-fit border">
               <div className="p-5 flex flex-col items-center justify-center">
-                <img
-                  src="https://images.ctfassets.net/h6goo9gw1hh6/2sNZtFAWOdP1lmQ33VwRN3/24e953b920a9cd0ff2e1d587742a2472/1-intro-photo-final.jpg?w=1200&h=992&fl=progressive&q=70&fm=jpg"
-                  className="w-24 h-24 text-large object-cover rounded-full mb-2 border"
-                />
-                <p className="text-[17px] mt-2">{vendor.firstName} {vendor.lastName}</p>
+                <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-3xl font-semibold text-gray-500 overflow-hidden">
+                  {vendor.profile_picture_url ? <img src={vendor.profile_picture_url} alt="Avatar" className="w-full h-full object-cover"/> : vendor.first_name? `${vendor?.first_name[0].toUpperCase()}${vendor?.last_name[0].toUpperCase()}`: `Loading`}
+                </div>
+                <p className="text-[17px] mt-2">{vendor.first_name} {vendor.last_name}</p>
                 <p className="text-sm opacity-60">{vendor.email}</p>
               </div>
               <div className="p-5 text-sm">
                 <div className="w-full flex flex-wrap items-center justify-between mb-3">
                   <p className="opacity-60">Store Name:</p>
-                  <p>{vendor.businessName ? vendor.businessName : 'No Business Name'}</p>
+                  <p>{vendor.business_name ? vendor.business_name : 'No Business Name'}</p>
                 </div>
                 <div className=" space-y-2 w-full flex flex-wrap items-center justify-between mb-3">
                   <p className="opacity-60">Store Description:</p>
                   <p>
-                    {vendor.storeDescription}
+                    {!vendor.store_description || vendor.store_description.trim() === ""?
+                      "No Description"
+                      :vendor.store_description
+                    }
                   </p>
                 </div>
                 <div className="w-full flex flex-wrap items-center justify-between mb-3">
                   <p className="opacity-60">Phone Number:</p>
-                  <p>{vendor.phoneNumber}</p>
+                  <p>{vendor.phone_number}</p>
                 </div>
 
                 <div className="w-full flex flex-wrap items-center justify-between mb-3">
@@ -108,14 +158,14 @@ const Vendor = () => {
                 </div>
                 <div className="w-full flex flex-wrap items-center justify-between mb-3">
                   <p className="opacity-60">Restricted:</p>
-                  <p>{vendor.isRestricted?"Restricted":"Not Restricted"}</p>
+                  <p>{vendor.is_restricted?"Restricted":"Not Restricted"}</p>
                 </div>
                 <div className="flex gap-3 mt-5">
                   <button onClick={restrictVendor}
                     type="button"
-                    className={`flex w-full items-center justify-center rounded-md border border-transparent ${vendor.isRestricted?"text-[#F32013] bg-[#ffff] border-[1px] border-[#F32013] hover:bg-[#ffff] focus:outline-none focus:ring-2 focus:ring-[#ffff] focus:ring-offset-2":"text-white bg-[#F32013] hover:bg-[#F32013] focus:outline-none focus:ring-2 focus:ring-[#F32013] focus:ring-offset-2"} px-2.5 py-2 text-sm font-medium  shadow-sm  sm:w-full sm:flex-grow-0`}
+                    className={`flex w-full items-center justify-center rounded-md border border-transparent ${vendor.is_restricted?"text-[#F32013] bg-[#ffff] border-[1px] border-[#F32013] hover:bg-[#ffff] focus:outline-none focus:ring-2 focus:ring-[#ffff] focus:ring-offset-2":"text-white bg-[#F32013] hover:bg-[#F32013] focus:outline-none focus:ring-2 focus:ring-[#F32013] focus:ring-offset-2"} px-2.5 py-2 text-sm font-medium  shadow-sm  sm:w-full sm:flex-grow-0`}
                   >
-                    {vendor.isRestricted?"Cancel Restriction":"Restrict Vendor"}
+                    {vendor.is_restricted?"Cancel Restriction":"Restrict Vendor"}
                   </button>
                 </div>
               </div>
@@ -172,7 +222,7 @@ const Vendor = () => {
                       <p className=" text-gray-500 font-light text-[12px]">
                         Discount Price
                       </p>
-                      <p className=" text-xs">{Number(eachProduct.discountedPrice).toLocaleString()}</p>
+                      <p className=" text-xs">{Number(eachProduct.discounted_price).toLocaleString()}</p>
                     </section>
                     
                   </div>
@@ -201,7 +251,7 @@ const Vendor = () => {
                       <td className="px-6 py-4">{eachProduct.category}</td>
                       <td className="px-6 py-4">{Number(eachProduct.price).toLocaleString()}</td>
                       <td className="px-6 py-4">{eachProduct.quantity}</td>
-                      <td className="px-6 py-4">{Number(eachProduct.discountedPrice).toLocaleString()}</td>
+                      <td className="px-6 py-4">{Number(eachProduct.discounted_price).toLocaleString()}</td>
                     </tr>
                   )
                 })

@@ -1,9 +1,10 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useState } from "react";
 import {BsSearch} from "react-icons/bs";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Cross as Hamburger } from "hamburger-react";
 import logo from "../../assets/newlogo.png";
+
 
 
 const AdminNavbar = ({ navTrigger, handleNavbarTrigger }) => {

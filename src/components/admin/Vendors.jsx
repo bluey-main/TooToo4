@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import { useNavigate } from "react-router";
+import { ClipLoader } from "react-spinners";
 
 const Vendors = () => {
   const [vendors, setVendors] = useState([]);
@@ -9,12 +10,13 @@ const Vendors = () => {
   useEffect(() => {
     const fetchVendors = async () => {
       const { data, error } = await supabase
-        .from("users")
+        .from("profiles")
         .select("*")
         .eq("role", "seller");
       if (error) {
         console.log(error);
       } else {
+        console.log("Data",data);
         setVendors(data);
       }
     };
@@ -41,16 +43,16 @@ const Vendors = () => {
           </tr>
         </thead>
         <tbody>
-          {vendors.map((vendor, key) => {
+          {vendors.length===0?<div className=" flex justify-center"><ClipLoader/></div>:vendors.map((vendor, key) => {
             return (
               <tr
                 onClick={() => navigate(`/admin/vendors/${vendor.id}`)}
                 className="bg-white border-b cursor-pointer hover:bg-gray-50 "
                 key={key}
               >
-                <td className="px-6 py-4">{vendor.username}</td>
+                <td className="px-6 py-4">{`${vendor.first_name} ${vendor.last_name}`}</td>
                 <td className="px-6 py-4">{vendor.email}</td>
-                <td className="px-6 py-4">{vendor.phoneNumber}</td>
+                <td className="px-6 py-4">{vendor.phone_number}</td>
                 <td className="px-6 py-4">{vendor.role}</td>
               </tr>
             );
