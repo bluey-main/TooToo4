@@ -8,8 +8,8 @@ import { useAuth } from "../../context/AuthContext";
 import { Input } from "../input";
 
 const defaultValue = {
-  first_name: "",
-  last_name: "",
+  // first_name: "",
+  // last_name: "",
   email_address: "",
   business_name: "",
   password: "",
@@ -30,13 +30,20 @@ const SellerRegister = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setstate("loading");
-    const {
+    // const {
+    //   email_address,
+    //   password,
+    //   confirm_password,
+    //   business_name,
+    //   first_name,
+    //   last_name,
+    // } = formField;
+
+        const {
       email_address,
       password,
       confirm_password,
       business_name,
-      first_name,
-      last_name,
     } = formField;
 
     if (password !== confirm_password) {
@@ -49,31 +56,32 @@ const SellerRegister = () => {
       return;
     }
 
-    try {
-      setIsLoading(true);
-      const { error } = await signUpWithEmail(email_address, password);
-      if (error) throw error;
+try {
+  setIsLoading(true);
 
-      const { error: profileError } = await supabase
-        .from("users")
-        .update({
-          businessName: business_name,
-          firstName: first_name,
-          lastName: last_name,
-          role: "seller",
-        })
-        .eq("email", email_address);
-
-      if (profileError) throw profileError;
-
-      setIsLoading(false);
-      toast.success("Welcome to JAMAZAN");
-      navigate("/");
-      resetFormFields();
-    } catch (error) {
-      setIsLoading(false);
-      toast.error(error.message);
+  // Include role and business_name in user metadata during signup
+  const { data, error } = await supabase.auth.signUp({
+    email: email_address,
+    password: password,
+    options: {
+      data: {
+        role: 'seller',
+        business_name: business_name,
+      }
     }
+  });
+
+  if (error) throw error;
+
+  setIsLoading(false);
+  toast.success("Please check your email to confirm your account");
+  navigate("/");
+  resetFormFields();
+} catch (error) {
+  setIsLoading(false);
+  toast.error(error.message);
+}
+
 
     setstate("loaded");
   };

@@ -83,7 +83,7 @@ export const AddAccountInfo = () => {
       toast.success("Account information saved successfully");
       
       // Navigate back instead of reloading the page
-      // navigate(-1);
+      navigate(-1);
       window.location.reload();
 
     } catch (error) {
