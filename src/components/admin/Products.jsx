@@ -1,25 +1,39 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import { useNavigate } from "react-router";
+import { ClipLoader } from "react-spinners";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
+  const [loading,setLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProducts = async () => {
-      const { data, error } = await supabase.from("products").select("*");
-      if (error) {
-        console.log(error);
-      } else {
-        setProducts(data);
+      setLoading(true)
+      try{
+        const { data, error } = await supabase.from("products").select("*");
+        if (error) {
+          console.log(error);
+        } else {
+          setProducts(data);
+        }
+      }catch(error){
+        console.log("An unexpected error");
+      }finally{
+        setLoading(false)
       }
     };
     fetchProducts();
   }, []);
 
   return (
-    <div className="relative overflow-x-auto border sm:rounded-lg">
+      products.length===0 && !loading ?(<div className="w-full flex flex-col items-center justify-center py-5">
+        <p>No Data Currently!!</p>
+      </div>):(
+        loading?<div className="w-full flex flex-col items-center justify-center py-5">
+        <ClipLoader />
+      </div>:<div className="relative overflow-x-auto border sm:rounded-lg">
       <table className="w-full text-sm text-left text-gray-500">
         <thead className="text-xs text-gray-700 uppercase bg-gray-50 ">
           <tr>
@@ -55,6 +69,8 @@ const Products = () => {
         </tbody>
       </table>
     </div>
+      )
+    
   );
 };
 

@@ -249,7 +249,7 @@ function App() {
                     category={product.category}
                     isSpecialOffer
                     discount={product.discount_rate}
-                    slashedPrice={numberWithCommas(product?.discountedPrice)}
+                    slashedPrice={numberWithCommas(product?.discounted_price)}
                     price={numberWithCommas(product?.price)}
                   />
                 )): ""}
