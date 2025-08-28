@@ -5,6 +5,7 @@ import AdminOrders from "./AdminOrders";
 import { supabase } from "../../lib/supabase";
 import { useEffect, useState } from "react";
 import { AccountHeader } from "@/components/account/AccountHeader";
+import { ClipLoader } from "react-spinners";
 
 const AdminAnalytics = () => {
 
@@ -95,7 +96,9 @@ const AdminAnalytics = () => {
           {
             loading?<p className=" font-semibold">No Data Currently</p>:
             recentProducts.length==0?
-            <p>loading...</p>:
+            <div className="w-full flex flex-col items-center justify-center py-5">
+        <ClipLoader />
+      </div>:
             <div className=" w-full">
               <div className="relative overflow-x-auto border sm:rounded-lg">
                 <table className="w-full text-sm text-left text-gray-500">

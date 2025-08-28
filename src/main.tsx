@@ -176,7 +176,7 @@ const router = createBrowserRouter([
           },
           {
             path: "orders",
-            element: <AdminOrders />,
+            element: <AdminOrders slice={0} />,
           },
           {
             path: "wallet",

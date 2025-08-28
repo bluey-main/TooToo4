@@ -104,7 +104,7 @@ const SellerRootLayout = () => {
                 {display_page.length === 3 && current_page}
               </p>
             </header>
-            {userDetails?.isRestricted ? (
+            {userDetails?.is_restricted ? (
               <div className="w-full h-full flex flex-col items-center gap-4">
                 <img className="w-72 h-72" src={restricted} alt="" />
                 <div className="flex items-center flex-col gap-1">
