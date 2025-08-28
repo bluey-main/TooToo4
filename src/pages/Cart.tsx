@@ -14,6 +14,8 @@ import toast from "react-hot-toast";
 import { numberWithCommas } from "../utils/helper";
 import { ClipLoader } from "react-spinners";
 import { useAuth } from "@/context/AuthContext";
+import { ProductDetails } from "@/context/SellerContext";
+import { CartProduct } from "@/types/types";
 
 const Cart = () => {
   const {
@@ -24,7 +26,7 @@ const Cart = () => {
     addToCart,
     getCartTotal,
   } = useCart();
-  const { currentUser } = useAuth();
+  const { userDetails } = useAuth();
   const navigate = useNavigate();
   
   return (
@@ -62,11 +64,12 @@ const Cart = () => {
                 </h2>
 
                 <ul role="list" className="divide-y divide-gray-200">
-                  {cartItems.map((product, productIdx) => (
+                  {cartItems?.map((product:CartProduct, productIdx:number) => (
                     <li key={product.id} className="flex py-6 sm:py-10">
                       <div className="flex-shrink-0 border rounded-lg">
                         <img
-                          src={product.imageUrls[0].url}
+                        alt={product?.name}
+                          src={product?.image_urls[0].url}
                           className="h-24 w-24 rounded-md object-cover object-center sm:h-48 sm:w-48"
                         />
                       </div>
@@ -77,17 +80,19 @@ const Cart = () => {
                             <div className="flex justify-between">
                               <h3 className="text-sm">
                                 <a
-                                  href={product.href}
+                                  // href={product?.href}
+                                  href={""}
+
                                   className="font-medium text-gray-700 hover:text-gray-800 line-clamp-2"
                                 >
-                                  {product.name}
+                                  {product?.name}
                                 </a>
                               </h3>
                             </div>
                             <div className="mt-1 flex text-sm">
-                              <p className="text-gray-500">
-                                {product.category}
-                              </p>
+                              {/* <p className="text-gray-500">
+                                {product?.category}
+                              </p> */}
                               {/* {product.size ? (
                                 <p className="ml-4 border-l border-gray-200 pl-4 text-gray-500">
                                   {product.size}
@@ -95,7 +100,7 @@ const Cart = () => {
                               ) : null} */}
                             </div>
                             <p className="mt-1 text-sm font-medium text-gray-900">
-                              ${numberWithCommas(product.discountedPrice)}<br/>
+                              ${numberWithCommas(product?.discounted_price)}<br/>
                             </p>
                           </div>
 
@@ -104,7 +109,7 @@ const Cart = () => {
                               htmlFor={`quantity-${productIdx}`}
                               className="sr-only"
                             >
-                              Quantity, {product.quantity}
+                              Quantity, {product?.quantity}
                             </label>
                             {loading ? 
                             ( <div className=" flex gap-4 items-center justify-center bg-black/[3%] rounded-lg px-3 py-2 select-none text-sm w-fit">
@@ -233,7 +238,7 @@ const Cart = () => {
             <div className="mt-6">
               <button
                 onClick={() => {
-                  if (currentUser) {
+                  if (userDetails) {
                     navigate("/checkout");
                   } else {
                     toast.error("Please login to continue checkout");

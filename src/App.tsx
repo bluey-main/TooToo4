@@ -242,15 +242,16 @@ function App() {
               })
             : (allProducts && allProducts.length > 0) ? allProducts?.filter((dt: IProduct) => dt.discount_rate !== 0)?.slice(0, 8)?.map((product: IProduct) => (
                   <ProductCard
-                    id={product.id}
-                    name={product.name}
-                    key={product.id}
-                    image={product.image_urls}
-                    category={product.category}
-                    isSpecialOffer
-                    discount={product.discount_rate}
-                    slashedPrice={numberWithCommas(product?.discountedPrice)}
-                    price={numberWithCommas(product?.price)}
+                  product={product}
+                    // id={product.id}
+                    // name={product.name}
+                    // key={product.id}
+                    // image={product.image_urls}
+                    // category={product.category}
+                    // isSpecialOffer
+                    // discount={product.discount_rate}
+                    // slashedPrice={numberWithCommas(product?.discounted_price)}
+                    // price={numberWithCommas(product?.price)}
                   />
                 )): ""}
         </div>

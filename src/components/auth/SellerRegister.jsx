@@ -39,12 +39,8 @@ const SellerRegister = () => {
     //   last_name,
     // } = formField;
 
-        const {
-      email_address,
-      password,
-      confirm_password,
-      business_name,
-    } = formField;
+    const { email_address, password, confirm_password, business_name } =
+      formField;
 
     if (password !== confirm_password) {
       toast.error("passwords do not match");
@@ -56,32 +52,31 @@ const SellerRegister = () => {
       return;
     }
 
-try {
-  setIsLoading(true);
+    try {
+      setIsLoading(true);
 
-  // Include role and business_name in user metadata during signup
-  const { data, error } = await supabase.auth.signUp({
-    email: email_address,
-    password: password,
-    options: {
-      data: {
-        role: 'seller',
-        business_name: business_name,
-      }
+      // Include role and business_name in user metadata during signup
+      const { data, error } = await supabase.auth.signUp({
+        email: email_address,
+        password: password,
+        options: {
+          data: {
+            role: "seller",
+            business_name: business_name,
+          },
+        },
+      });
+
+      if (error) throw error;
+
+      setIsLoading(false);
+      toast.success("Please check your email to confirm your account");
+      navigate("/");
+      resetFormFields();
+    } catch (error) {
+      setIsLoading(false);
+      toast.error(error.message);
     }
-  });
-
-  if (error) throw error;
-
-  setIsLoading(false);
-  toast.success("Please check your email to confirm your account");
-  navigate("/");
-  resetFormFields();
-} catch (error) {
-  setIsLoading(false);
-  toast.error(error.message);
-}
-
 
     setstate("loaded");
   };

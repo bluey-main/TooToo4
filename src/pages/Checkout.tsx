@@ -13,6 +13,7 @@ import { useElements, useStripe } from "@stripe/react-stripe-js";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { AccountHeader } from "@/components/account/AccountHeader";
+import { CartProduct } from "@/types/types";
 
 const Checkout = () => {
   const {
@@ -32,12 +33,12 @@ const Checkout = () => {
   const elements = useElements();
 
   const updateCartWithStripeId = async () => {
-    const cartItemsWithStripeId = await Promise.all(cartItems.map(async (item) => {
+    const cartItemsWithStripeId = await Promise.all(cartItems.map(async (item:CartProduct) => {
       try{
         const { data: sellerInfo, error } = await supabase
           .from("users")
           .select("stripeAccountId, vendorType")
-          .eq("id", item.sellerId)
+          .eq("id", item.seller_id)
           .single();
 
         if (error) {
@@ -50,7 +51,7 @@ const Checkout = () => {
           vendorType: sellerInfo?.vendorType || "basic",
         };
       }catch(error){
-        console.error(`Failed to fetch seller info for ${item.sellerId}`, error);
+        console.error(`Failed to fetch seller info for ${item.seller_id}`, error);
         return {
           ...item,
           stripeId: null,
@@ -95,7 +96,7 @@ const Checkout = () => {
   const makePayment = async () => {
     console.log(
         "products:", enrichedCart,
-        "userId:", userDetails.uid,
+        "userId:", userDetails?.id,
         "addressId:", selectedAddress,
       )
     if (selectedAddress.length < 1) {
@@ -112,7 +113,7 @@ const Checkout = () => {
     try {
       const res = await axios.post("https://jamazan-backend-1zzk.onrender.com/create-checkout-session", {
         products: enrichedCart,
-        userId: userDetails.uid,
+        userId: userDetails?.id,
         addressId: selectedAddress,
       },{
         withCredentials: true,
@@ -131,7 +132,7 @@ const Checkout = () => {
   
     } catch (error) {
       setIsLoading(false);
-      const errMsg = error.response?.data?.message || "An error occurred";
+      const errMsg = error?.response?.data?.message || "An error occurred";
       toast.error(errMsg);
       console.log(error);
     }
@@ -147,7 +148,7 @@ const Checkout = () => {
       )}
 
 
-      {currentUser ? (
+      {userDetails ? (
         <div className="">
           <div className="mx-auto max-w-2xl px-4 pb-24 pt-16 max-md:pt-5 sm:px-6 lg:max-w-7xl lg:px-8">
             <AccountHeader hasBack text="" heading={`Checkout`} />
@@ -186,11 +187,12 @@ const Checkout = () => {
                 <div className="mt-4 rounded-lg border border-gray-200 bg-white shadow-sm">
                   <h3 className="sr-only">Items in your cart</h3>
                   <ul role="list" className="divide-y divide-gray-200 px-6">
-                    {cartItems.map((product, productIdx) => (
+                    {cartItems.map((product:CartProduct, productIdx:number) => (
                       <li key={product.id} className="flex py-6 sm:py-6">
                         <div className="flex-shrink-0 border rounded-lg">
                           <img
-                            src={product.imageUrls[0].url}
+                          alt={product.id}
+                            src={product.image_urls[0].url}
                             className="h-24 w-24 rounded-md object-cover object-center sm:h-48 sm:w-48"
                           />
                         </div>
@@ -201,18 +203,20 @@ const Checkout = () => {
                               <div className="flex justify-between">
                                 <h3 className="text-sm line-clamp-2">
                                   <a
-                                    href={product.href}
+                                    // href={product.href}
+                                    href={""}
+
                                     className="font-medium text-gray-700 hover:text-gray-800"
                                   >
                                     {product.name}
                                   </a>
                                 </h3>
                               </div>
-                              <div className="mt-1 flex text-sm">
+                              {/* <div className="mt-1 flex text-sm">
                                 <p className="text-gray-500">
                                   {product.category}
                                 </p>
-                              </div>
+                              </div> */}
                               <p className="mt-1 text-sm font-medium text-gray-900">
                                 ${numberWithCommas(product.price)}
                               </p>
@@ -246,7 +250,7 @@ const Checkout = () => {
                           </div>
 
                           <p className="mt-4 flex space-x-2 text-sm text-gray-700">
-                            {product.inStock ? (
+                            {product.quantity!==0 ? (
                               <BsCheck
                                 className="h-5 w-5 flex-shrink-0 text-green-500"
                                 aria-hidden="true"
@@ -259,9 +263,9 @@ const Checkout = () => {
                             )}
 
                             <span>
-                              {product.inStock
+                              {product.quantity!==0
                                 ? "In stock"
-                                : `Ships in ${product.leadTime||" 14 days"}`}
+                                : `Ships in " 14 days"}`}
                             </span>
                           </p>
                         </div>

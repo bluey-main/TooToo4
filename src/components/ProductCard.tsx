@@ -26,7 +26,7 @@ product
   return diffDays <= 7 ? true : false;
 }
 
-const isSpecialOffer = product?.discount_rate
+const isSpecialOffer = product?.discount_rate || product?.discount_rate !== 0
   return (
     <div
       key={product?.id}
@@ -38,7 +38,7 @@ const isSpecialOffer = product?.discount_rate
           <p>New</p>
         </div>
       )}
-      {product?.discount_rate && (
+      {isSpecialOffer && (
         <div className="uppercase bg-[#fef3e9] text-[#f68b1e] rounded-md absolute top-3 right-3 text-[13px] font-semibold p-1.5 px-3 z-[5] border border-[#f68b1e]">
           <p>-{product?.discount_rate}%</p>
         </div>

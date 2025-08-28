@@ -9,7 +9,6 @@ import { Login } from "./pages/auth/Login";
 import { ForgotPassword } from "./pages/auth/ForgotPassword";
 import { Register } from "./pages/auth/Register";
 import AuthRoot from "./wrappers/AuthRoot";
-import Cart from "./pages/Cart";
 import Categories from "./pages/Categories";
 
 import AdminProvider from "./context/AdminContext";
@@ -30,7 +29,6 @@ import SellerOrder from "./pages/sellerRoot/seller/SellerOrder";
 import Orders from "./pages/sellerRoot/seller/Orders";
 import Order from "./pages/account/Order";
 import Vendor from "./pages/admin/Vendor";
-import Checkout from "./pages/Checkout";
 import AdminWallet from "./pages/admin/AdminWallet";
 import SellerAddCard from "./pages/sellerRoot/seller/SellerAddCard";
 import Profile from "./pages/sellerRoot/seller/Profile";
@@ -277,6 +275,8 @@ import Dashboard from "./pages/sellerRoot/seller/Dashboard";
 import SellerProvider from "./context/SellerContext";
 import AddSellerProduct from "./pages/sellerRoot/seller/AddSellerProduct";
 import Product from "./pages/Product";
+import Cart from "./pages/Cart";
+import Checkout from "./pages/Checkout";
 
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>

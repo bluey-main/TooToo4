@@ -18,17 +18,18 @@ export const CartProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
 
   const getCartItems = async () => {
-    if (!userDetails?.uid) return;
+    if (!userDetails?.id) return;
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from("users")
+        .from("profiles")
         .select("cart")
-        .eq("id", userDetails.uid)
+        .eq("id", userDetails.id)
         .single();
       if (error) {
         throw error;
       }
+      console.log("THE CART IS", data?.cart)
       setCartItems(data.cart || []);
     } catch (error) {
       console.log(error);
@@ -38,16 +39,16 @@ export const CartProvider = ({ children }) => {
   };
 
   const addToCart = async (product) => {
-    if (!userDetails?.uid) {
+    if (!userDetails?.id) {
       toast.error("Please login to add items to cart");
       return;
     }
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from("users")
+        .from("profiles")
         .select("cart")
-        .eq("id", userDetails.uid)
+        .eq("id", userDetails.id)
         .single();
       if (error) {
         throw error;
@@ -60,9 +61,9 @@ export const CartProvider = ({ children }) => {
         currentCart.push({ ...product, quantity: 1 });
       }
       const { error: updateError } = await supabase
-        .from("users")
+        .from("profiles")
         .update({ cart: currentCart })
-        .eq("id", userDetails.uid);
+        .eq("id", userDetails.id);
       if (updateError) {
         throw updateError;
       }
@@ -77,13 +78,13 @@ export const CartProvider = ({ children }) => {
   };
 
   const reduceProductQuantity = async (product) => {
-    if (!userDetails?.uid) return;
+    if (!userDetails?.id) return;
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from("users")
+        .from("profiles")
         .select("cart")
-        .eq("id", userDetails.uid)
+        .eq("id", userDetails.id)
         .single();
       if (error) {
         throw error;
@@ -98,9 +99,9 @@ export const CartProvider = ({ children }) => {
         }
       }
       const { error: updateError } = await supabase
-        .from("users")
+        .from("profiles")
         .update({ cart: currentCart })
-        .eq("id", userDetails.uid);
+        .eq("id", userDetails.id);
       if (updateError) {
         throw updateError;
       }
@@ -113,13 +114,13 @@ export const CartProvider = ({ children }) => {
   };
 
   const removeItemFromCart = async (product) => {
-    if (!userDetails?.uid) return;
+    if (!userDetails?.id) return;
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from("users")
+        .from("profiles")
         .select("cart")
-        .eq("id", userDetails.uid)
+        .eq("id", userDetails.id)
         .single();
       if (error) {
         throw error;
@@ -127,9 +128,9 @@ export const CartProvider = ({ children }) => {
       const currentCart = data.cart || [];
       const updatedCart = currentCart.filter((item) => item.id !== product.id);
       const { error: updateError } = await supabase
-        .from("users")
+        .from("profiles")
         .update({ cart: updatedCart })
-        .eq("id", userDetails.uid);
+        .eq("id", userDetails.id);
       if (updateError) {
         throw updateError;
       }
@@ -144,13 +145,13 @@ export const CartProvider = ({ children }) => {
   };
 
   const clearCart = async () => {
-    if (!userDetails?.uid) return;
+    if (!userDetails?.id) return;
     setLoading(true);
     try {
       const { error } = await supabase
-        .from("users")
+        .from("profiles")
         .update({ cart: [] })
-        .eq("id", userDetails.uid);
+        .eq("id", userDetails.id);
       if (error) {
         throw error;
       }

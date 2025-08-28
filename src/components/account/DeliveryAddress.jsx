@@ -37,10 +37,7 @@ const DeliveryAddress = ({ isHome = true, onAddressSelected }) => {
         .from("addresses")
         .update({ default: false })
         .eq("user_id", userDetails.id);
-      await supabase
-        .from("addresses")
-        .update({ default: true })
-        .eq("id", id);
+      await supabase.from("addresses").update({ default: true }).eq("id", id);
       setLoadingAddress(false);
       toast.success("Address updated successfully");
       fetchAddresses();
@@ -64,6 +61,7 @@ const DeliveryAddress = ({ isHome = true, onAddressSelected }) => {
       }
     }
   };
+
   return (
     <>
       {loadingAddress ? (
@@ -81,11 +79,12 @@ const DeliveryAddress = ({ isHome = true, onAddressSelected }) => {
       ) : deliveryAddresses.length < 1 ? (
         <p className="text-sm">No delivery addresses added.</p>
       ) : isHome ? (
-       (deliveryAddresses && deliveryAddresses > 0) ? deliveryAddresses.sort((a, b) => (a.default ? -1 : 1))
+        deliveryAddresses
+          .sort((a, b) => (a.default ? -1 : 1))
           .map((val, index) => (
             <div
               key={index}
-              className="flex justify-between items-center max-md:flex-col gap-10 max-md:items-start"
+              className="flex justify-between items-center max-md:flex-col gap-10 max-md:items-start mt-10"
             >
               <div>
                 <p className="opacity-60 ">
@@ -98,9 +97,9 @@ const DeliveryAddress = ({ isHome = true, onAddressSelected }) => {
                 {val.default && (
                   <button
                     className="  px-2.5 py-1 h-fit  bg-zinc-100 
-  rounded text-xs
-  text-[#305C45] 
-  font-normal "
+    rounded text-xs
+    text-[#305C45] 
+    font-normal "
                   >
                     Default
                   </button>
@@ -134,19 +133,17 @@ const DeliveryAddress = ({ isHome = true, onAddressSelected }) => {
                 />
               </div>
             </div>
-          ) ) : (
-          <p className="text-sm">No delivery addresses added.</p>
-        )
+          ))
       ) : (
         <RadioGroup value={selectedAddress} onValueChange={setSelectedAddress}>
           {deliveryAddresses
             .sort((a, b) => (a.default ? -1 : 1))
             .map((val, index) => (
-              <Radio classNames={{ base: "!gap-5" }} value={val.id} key={index}>
+              <Radio classNames={{ base: "!gap-5" }} value={val.id} key={index} className="mt-5">
                 <div className="flex flex-col gap-4 items-start">
                   <div>
                     <p className="opacity-60 ">
-                      Address : {val.street}, {val.city} <br /> Contact :{" "}
+                      Address : {val.address_line_1}, {val.city} <br /> Contact :{" "}
                       {val.phone_number}
                     </p>
                   </div>
@@ -155,9 +152,9 @@ const DeliveryAddress = ({ isHome = true, onAddressSelected }) => {
                     {val.default && (
                       <button
                         className="  px-2.5 py-1 h-fit  bg-zinc-100 
-      rounded text-xs
-      text-[#305C45] 
-      font-normal "
+        rounded text-xs
+        text-[#305C45] 
+        font-normal "
                       >
                         Default
                       </button>

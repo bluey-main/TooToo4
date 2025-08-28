@@ -33,7 +33,7 @@ export const Login = () => {
 
     try {
       setIsLoading(true);
-      const { error } = await signInWithEmail(email_address, password);
+      const { error } = await signInWithEmail(email_address, password) || {};
       setIsLoading(false);
       if (error) {
         throw error;
@@ -48,7 +48,7 @@ export const Login = () => {
 
   const handleGoogleSignUp = async()=>{
     try{
-      const { error } = await signInWithGoogle();
+      const { error } = await signInWithGoogle() || {};
       if(error){
         throw error;
       }

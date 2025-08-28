@@ -10,12 +10,15 @@ import { useNavigate } from "react-router";
 import { AccountHeader } from "./AccountHeader";
 import { Input } from "../input";
 
-
 const defaultValue2 = {
   first_name: "",
   last_name: "",
   phone_number: "",
-  street: "",
+  state: "",
+  // city: "",
+  address_line_1: "",
+  address_line_2: "",
+  zip_code: "",
 };
 
 const cities = [
@@ -48,7 +51,6 @@ export const AddDeliveryAddress = () => {
   //   setValue,
   //   suggestions: { status, data },
   //   clearSuggestions,
-  
 
   const clearFields = () => {
     setFormField(defaultValue2);
@@ -57,21 +59,21 @@ export const AddDeliveryAddress = () => {
 
   const saveAddress = async () => {
     if (
-      formField.first_name.trim() == "" ||
-      formField.last_name.trim() == "" ||
-      formField.phone_number.trim() == "" ||
-      formField.street.trim() == "" ||
+      formField.first_name == "" ||
+      formField.last_name == "" ||
+      formField.phone_number == "" ||
+      formField.street == "" ||
       city == ""
     ) {
       toast.error("Please fill in all fields");
     } else {
       try {
         setSaving(true);
-        const { error } = await supabase.from("addresses").insert({
+        const { error } = await supabase.from("delivery_addresses").insert({
           ...formField,
           city: cities[city],
           user_id: userDetails.id,
-          default: false,
+          is_default: false,
         });
         if (error) throw error;
         setSaving(false);

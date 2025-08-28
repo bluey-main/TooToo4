@@ -13,6 +13,7 @@ import NotLiked from "@/components/NotLiked";
 import RelatedProducts from "@/components/RelatedProducts";
 import Reviews from "@/components/Reviews";
 import { IProduct } from "@/App";
+import { useAuth } from "@/context/AuthContext";
 
 interface ProductProps {
   isAdmin?: boolean;
@@ -39,15 +40,16 @@ interface IParticularProduct extends IProduct {
 
 const Product: React.FC<ProductProps> = ({ isAdmin = false }) => {
   const { loading, reduceProductQuantity, addToCart, isItemInCart } = useCart();
+  const { userDetails } = useAuth();
   const [indexValue, setIndexValue] = useState(0);
   const [selectedProduct, setSelectedProduct] =
     useState<IParticularProduct | null>(null);
   const [loadingProduct, setLoadingProduct] = useState(false);
   const [liked, setLiked] = useState(false);
 
-  const loggedInUser: { uid: string } | null = JSON.parse(
-    localStorage.getItem("userDetails") || "null"
-  );
+  // const loggedInUser: { uid: string } | null = JSON.parse(
+  //   localStorage.getItem("userDetails") || "null"
+  // );
 
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -100,12 +102,12 @@ const Product: React.FC<ProductProps> = ({ isAdmin = false }) => {
   };
 
   const checkIfLiked = async () => {
-    if (!loggedInUser) return;
+    if (!userDetails) return;
     try {
       const { data: userData, error } = await supabase
         .from("users")
         .select("likedItems")
-        .eq("id", loggedInUser.uid)
+        .eq("id", userDetails.id)
         .single<SupabaseUser>();
 
       if (error) throw error;
@@ -120,7 +122,7 @@ const Product: React.FC<ProductProps> = ({ isAdmin = false }) => {
   };
 
   const likedProduct = async () => {
-    if (!loggedInUser) {
+    if (!userDetails) {
       return toast.error("Please login to like the product");
     }
     if (!liked && selectedProduct) {
@@ -128,7 +130,7 @@ const Product: React.FC<ProductProps> = ({ isAdmin = false }) => {
         const { data: userData, error: fetchError } = await supabase
           .from("profiles")
           .select("likedItems")
-          .eq("id", loggedInUser.uid)
+          .eq("id", userDetails.id)
           .single<SupabaseUser>();
 
         if (fetchError) throw fetchError;
@@ -139,7 +141,7 @@ const Product: React.FC<ProductProps> = ({ isAdmin = false }) => {
         const { error: updateError } = await supabase
           .from("profiles")
           .update({ likedItems: updatedLikedItems })
-          .eq("id", loggedInUser.uid);
+          .eq("id", userDetails.uid);
 
         if (updateError) throw updateError;
 
@@ -158,12 +160,12 @@ const Product: React.FC<ProductProps> = ({ isAdmin = false }) => {
 
   useEffect(() => {
     const checkIfLikedItemsArrayExist = async () => {
-      if (!loggedInUser) return;
+      if (!userDetails) return;
       try {
         const { data: userData, error } = await supabase
           .from("profiles")
           .select("likedItems")
-          .eq("id", loggedInUser.uid)
+          .eq("id", userDetails.id)
           .single<SupabaseUser>();
 
         if (error) throw error;
@@ -172,7 +174,7 @@ const Product: React.FC<ProductProps> = ({ isAdmin = false }) => {
           await supabase
             .from("profiles")
             .update({ likedItems: [] })
-            .eq("id", loggedInUser.uid);
+            .eq("id", userDetails.id);
         }
       } catch (error) {
         console.error("Error checking if liked items array exist:", error);
@@ -209,6 +211,9 @@ const Product: React.FC<ProductProps> = ({ isAdmin = false }) => {
       },
     ],
   };
+
+  const isSpecialOffer =
+    selectedProduct?.discount_rate || selectedProduct?.discount_rate !== 0;
 
   return (
     <section className={`${!isAdmin && "py-14"} relative`}>
@@ -279,14 +284,19 @@ const Product: React.FC<ProductProps> = ({ isAdmin = false }) => {
               <p className="text-slate-400 mb-6 capitalize line-clamp-3">
                 {selectedProduct?.description}
               </p>
-              <div className="flex items-center justify-start gap-4 mb-1">
-                <h1 className="text-base text-slate-500 line-through font-semibold">
-                  $
-                  {numberWithCommas(
-                    (Math.round(selectedProduct?.price * 100) / 100).toFixed(2)
-                  )}
-                </h1>
-              </div>
+              {isSpecialOffer && (
+                <div className="flex items-center justify-start gap-4 mb-1">
+                  <h1 className="text-base text-slate-500 line-through font-semibold">
+                    $
+                    {numberWithCommas(
+                      (Math.round(selectedProduct?.price * 100) / 100).toFixed(
+                        2
+                      )
+                    )}
+                  </h1>
+                </div>
+              )}
+
               <div className="flex items-center justify-start gap-4 mb-10">
                 <h1 className="text-xl text-[#086047] font-semibold">
                   $
@@ -296,9 +306,11 @@ const Product: React.FC<ProductProps> = ({ isAdmin = false }) => {
                     ).toFixed(2)
                   )}
                 </h1>
-                <h1 className="text-[#086047] p-1 px-3 text-sm rounded-lg bg-[#086047]/10 font-bold">
-                  -{selectedProduct?.discount_rate}%
-                </h1>
+                {isSpecialOffer && (
+                  <h1 className="text-[#086047] p-1 px-3 text-sm rounded-lg bg-[#086047]/10 font-bold">
+                    -{selectedProduct?.discount_rate}%
+                  </h1>
+                )}
               </div>
               {/* <h1 className="text-slate-400 text-lg font-semibold line-through mb-10">
             $250
@@ -313,20 +325,18 @@ const Product: React.FC<ProductProps> = ({ isAdmin = false }) => {
                     <div className=" flex gap-4 items-center justify-evenly bg-black/[3%] rounded-lg px-4 py-3 select-none">
                       <FaMinus
                         className="flex items-center justify-center text-lg font-semibold text-[#086047] cursor-pointer"
-                        onClick={
-                          () => {}
-                          // reduceProductQuantityFromFirebase(selectedProduct)
-                        }
+                        onClick={() => {
+                          reduceProductQuantity(selectedProduct);
+                        }}
                       />
                       <p className="mx-4 w-3 text-black-50 font-semibold">
                         {isItemInCart(selectedProduct).quantity}
                       </p>
                       <FaPlus
                         className="flex items-center justify-center text-[#086047] text-lg font-semibold cursor-pointer"
-                        onClick={
-                          () => {}
-                          // addCartItemsFromFirebase(selectedProduct)
-                        }
+                        onClick={() => {
+                          addToCart(selectedProduct);
+                        }}
                       />
                     </div>
                   )}
@@ -340,7 +350,7 @@ const Product: React.FC<ProductProps> = ({ isAdmin = false }) => {
                     <div>
                       <button
                         onClick={() => {
-                          // addCartItemsFromFirebase(selectedProduct);
+                          addToCart(selectedProduct);
                         }}
                         className=" bg-[#086047] hover:bg-[#086047]/80 text-white py-3 px-6 rounded-lg flex items-center gap-3 font-semibold"
                       >

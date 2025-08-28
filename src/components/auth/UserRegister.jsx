@@ -55,8 +55,8 @@ const UserRegister = () => {
         .from("users")
         .update({
           // username,
-          firstName: first_name,
-          lastName: last_name,
+          // firstName: first_name,
+          // lastName: last_name,
         })
         .eq("email", email_address);
 
@@ -77,7 +77,7 @@ const UserRegister = () => {
 
   const handleGoogleSignUp = async()=>{
     try{
-      const { error } = await signInWithGoogle();
+      const { error } = await signInWithGoogle() || {};
       if (error) throw error;
       toast.success("User Signed successfully");
       navigate("/account/profile");
