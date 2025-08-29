@@ -1,192 +1,189 @@
-
-import { useCallback, useContext, useEffect, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useState } from 'react'
 import { productData } from '../../../utils/testData'
 import Pagination from "../../../components/pagination/Pagination"
 import { PieChat } from '../../../components/charts/PieChat'
 import BarChat from "../../../components/charts/BarChat"
+import { SellerContext, useSeller } from '../../../context/SellerContext'
 import AdminInfo from '../../../components/admin/AdminInfo'
 import axios from 'axios';
 // import { useUser } from '../../../context/UserContext';
 import toast from "react-hot-toast";
-import { supabase } from "../../../lib/supabase";
+// import { getUserDetails } from "../../../utils/firebase/index";
 import { convertDate } from '../../../utils/dataConverter'
+import StripeAccountNotice from '../../../components/StripeAccountNotice'
 import { useAuth } from '@/context/AuthContext'
-import StripeAccountNotice from '@/components/StripeAccountNotice'
-import { useSeller } from '@/context/SellerContext'
 
 const Dashboard = () => {
-    const {getSellerOrders} = useSeller();
+    // const {getSellerOrders} = useContext(SellerContext);
     const { userDetails } = useAuth();
+    const {getSellerOrders} = useSeller()
     const [totalOrders, setTotalOrders] = useState(0)
     const [totalSales, setTotalSales] = useState(0);
     const [yesterOrders, setYesterdayOrders] = useState(0);
     const [isSubscribed,setIsSubscribed] = useState(false);
     const [isCanceling, setIsCanceling] = useState(false);
     const [loading,setLoading] = useState(false);
+
+
+    // const host = "https://jamazan-backend-1zzk.onrender.com"
+
+    const host = "http://localhost:7000"
+
     
 
-    // const fetchSubscriptionStatus = async () => {
-    //   if (!userDetails || !userDetails?.id) return;
+    const fetchSubscriptionStatus = async () => {
+      if (!userDetails || !userDetails.id) return;
       
-    //   try {
-    //     const { data: freshUser, error } = await supabase
-    //       .from("users")
-    //       .select("subscriptionStatus, subscriptionId")
-    //       .eq("id", userDetails?.id)
-    //       .single();
+      try {
+        const freshUser = await userDetails;
+        // Check for both active and canceling states
+        const isActive = freshUser?.subscriptionStatus === "active";
+        const isCancelingStatus = freshUser?.subscriptionStatus === "canceling";
 
-    //     if (error) {
-    //       throw error;
-    //     }
-
-    //     // Check for both active and canceling states
-    //     const isActive = freshUser?.subscriptionStatus === "active";
-    //     const isCancelingStatus = freshUser?.subscriptionStatus === "canceling";
-
-    //     const hasAccess = isActive || isCancelingStatus;
+        const hasAccess = isActive || isCancelingStatus;
     
-    //     setIsSubscribed(hasAccess);
-    //     setIsCanceling(isCancelingStatus);
+        setIsSubscribed(hasAccess);
+        setIsCanceling(isCancelingStatus);
         
-    //     return { hasAccess, isCanceling: isCancelingStatus };
-    //   } catch (err) {
-    //     console.error("Error fetching subscription status:", err);
-    //     return false;
-    //   }
-    // };
+        return { hasAccess, isCanceling: isCancelingStatus };
+      } catch (err) {
+        console.error("Error fetching subscription status:", err);
+        return false;
+      }
+    };
   
   
-    // const fetchOrders = useCallback(async () => {
-    //   const orders = await getSellerOrders();
-    //   const totalSales = orders.reduce((acc, eachOrder)=>{
-    //     const price = Number(eachOrder.product.price)*eachOrder.product.quantity;
-    //     return acc+=price;
-    //   }, 0)
-    //   const orderYesterday = orders.filter((eachOrder)=>{
-    //     const today = new Date();
-    //     const date = new Date(eachOrder.createdOn.seconds*1000);
-    //     const yesterday = new Date(date.getTime() - 86400000).getDate();
-    //     if(today.getDate()-yesterday==5){
-    //       return eachOrder;
-    //     }
-    //   })
-    //   setTotalSales(totalSales)
-    //   setTotalOrders(orders.length)
-    //   setYesterdayOrders(orderYesterday.length)
-    // }, [getSellerOrders]);
+    const fetchOrders =  useCallback ((async()=>{
+      const orders = await getSellerOrders();
+      const totalSales = orders?.reduce((acc, eachOrder)=>{
+        const price = Number(eachOrder.product.price)*eachOrder.product.quantity;
+        return acc+=price;
+      }, 0)
+      const orderYesterday = orders?.filter((eachOrder)=>{
+        const today = new Date();
+        const date = new Date(eachOrder.createdOn.seconds*1000);
+        const yesterday = new Date(date.getTime() - 86400000).getDate();
+        if(today.getDate()-yesterday==5){
+          return eachOrder;
+        }
+      })
+      setTotalSales(totalSales)
+      setTotalOrders(orders?.length)
+      setYesterdayOrders(orderYesterday.length)
+    }), [getSellerOrders]);
 
 
 
 
-    // useEffect(() => {
-    //   const checkSubscriptionStatus = async () => {
-    //     const subscriptionParam = new URLSearchParams(window.location.search).get("subscription");
-    //     console.log("subscriptionParam:- ",subscriptionParam);
+    useEffect(() => {
+      const checkSubscriptionStatus = async () => {
+        const subscriptionParam = new URLSearchParams(window.location.search).get("subscription");
+        console.log("subscriptionParam:- ",subscriptionParam);
 
-    //     // Handle subscription status from URL
-    //     if (subscriptionParam === "success") {
-    //       toast.success("Subscription activated successfully");
-    //     } else if (subscriptionParam === "cancelled") {
-    //       toast.error("Subscription cancelled");
-    //     }
+        // Handle subscription status from URL
+        if (subscriptionParam === "success") {
+          toast.success("Subscription activated successfully");
+        } else if (subscriptionParam === "cancelled") {
+          toast.error("Subscription cancelled");
+        }
 
-    //     // Fetch latest subscription status from DB
-    //     await fetchSubscriptionStatus();
+        // Fetch latest subscription status from DB
+        await fetchSubscriptionStatus();
         
-    //   };
+      };
     
-    //   checkSubscriptionStatus();
-    // }, [userDetails]);
+      checkSubscriptionStatus();
+    }, [userDetails]);
     
 
     const handleSubscribe = async()=>{
-      // setLoading(true);
-      // try{
-      //   const response = await axios.post("https://jamazan-backend-1zzk.onrender.com/subscription",{
-      //     userId:userDetails?.uid
-      //   },{
-      //     withCredentials:true
-      //   });
-      //   if(response.data){
-      //     window.location.href = response.data.url;
-      //   }else{
-      //     toast.error("Failed to create checkout session");
-      //     console.log("No URL returned from Stripe");
-      //   }
-      //   setLoading(false);
-      // }catch(error){
-      //   console.log("error", error);
-      //   toast.error("Failed to create checkout session");
-      //   setLoading(false);
-      // }finally{
-      //   setLoading(false);
-      // }
+      setLoading(true);
+      try{
+        const response = await axios.post(`${host}/subscription`,{
+          userId:userDetails?.id
+        },{
+          withCredentials:true
+        });
+        if(response.data){
+          window.location.href = response.data.url;
+        }else{
+          toast.error("Failed to create checkout session");
+          console.log("No URL returned from Stripe");
+        }
+        setLoading(false);
+      }catch(error){
+        console.log("error", error);
+        toast.error("Failed to create checkout session");
+        setLoading(false);
+      }finally{
+        setLoading(false);
+      }
     }
 
 
     const handleCancelSubscription = async () => {
-      // if (!userDetails || !userDetails?.uid) return;
-      // setLoading(true);
+      if (!userDetails || !userDetails?.id) return;
+      setLoading(true);
     
-      // try {
-      //   const response = await axios.post(
-      //     "https://jamazan-backend-1zzk.onrender.com/cancel-subscription",
-      //     { userId: userDetails?.uid },
-      //     {withCredentials:true},
-      //     {
-      //       headers: {
-      //         "Content-Type": "application/json",
-      //       }
-      //     }
-      //   );
-      //   const data = response.data;
+      try {
+        const response = await axios.post(
+          `${host}/cancel-subscription`,
+          { userId: userDetails?.id },
+          {withCredentials:true},
+          {
+            headers: {
+              "Content-Type": "application/json",
+            }
+          }
+        );
+        const data = response.data;
         
-      //   if (data.success) {
-      //     toast.success("Subscription will cancel at the end of the billing period.");
+        if (data.success) {
+          toast.success("Subscription will cancel at the end of the billing period.");
 
-      //     await fetchSubscriptionStatus();
-      //   }
-      //   setLoading(false)
-      // } catch (error) {
-      //   toast.error("Failed to cancel subscription.");
-      //   console.error("Subscription cancellation error:", error);
-      //   setLoading(false);
-      // }finally{
-      //   setLoading(false);
-      // }
+          await fetchSubscriptionStatus();
+        }
+        setLoading(false)
+      } catch (error) {
+        toast.error("Failed to cancel subscription.");
+        console.error("Subscription cancellation error:", error);
+        setLoading(false);
+      }finally{
+        setLoading(false);
+      }
     };
 
 
     const handleReactivateSubscription = async () => {
-      // if (!userDetails || !userDetails?.uid || !userDetails?.subscriptionId) return;
+      if (!userDetails || !userDetails?.id || !userDetails?.subscriptionId) return;
       
-      // setLoading(true);
-      // try {
-      //   const response = await axios.post(
-      //     "https://jamazan-backend-1zzk.onrender.com/reactivate-subscription",
-      //     { 
-      //       userId: userDetails?.uid,
-      //       subscriptionId: userDetails?.subscriptionId
-      //     },
-      //     {withCredentials: true},
-      //     {
-      //       headers: {
-      //         "Content-Type": "application/json",
-      //       }
-      //     }
-      //   );
+      setLoading(true);
+      try {
+        const response = await axios.post(
+          `${host}/reactivate-subscription`,
+          { 
+            userId: userDetails?.id,
+            subscriptionId: userDetails?.subscriptionId
+          },
+          {withCredentials: true},
+          {
+            headers: {
+              "Content-Type": "application/json",
+            }
+          }
+        );
     
-      //   const data = response.data;
+        const data = response.data;
         
-      //   if (data.success) {
-      //     toast.success("Subscription has been reactivated.");
-      //     await fetchSubscriptionStatus();
-      //   }
-      // } catch (error) {
-      //   toast.error("Failed to reactivate subscription.");
-      //   console.error("Subscription reactivation error:", error);
-      // }
-      // setLoading(false);
+        if (data.success) {
+          toast.success("Subscription has been reactivated.");
+          await fetchSubscriptionStatus();
+        }
+      } catch (error) {
+        toast.error("Failed to reactivate subscription.");
+        console.error("Subscription reactivation error:", error);
+      }
+      setLoading(false);
     };
 
 
@@ -197,7 +194,7 @@ const Dashboard = () => {
     
   
   return (
-    <>
+    <React.Fragment>
       <div className="pt-0 rounded-md">
         <StripeAccountNotice hasStripeAccount={Boolean(userDetails?.stripeAccountId)} isSubscribed={Boolean(userDetails?.subscriptionId)}/>
         <aside className="flex flex-col items-end">
@@ -345,7 +342,7 @@ const Dashboard = () => {
             </section>
         </section>
       </div>
-    </>
+    </React.Fragment>
   )
 }
 

@@ -36,7 +36,7 @@ const Checkout = () => {
     const cartItemsWithStripeId = await Promise.all(cartItems.map(async (item:CartProduct) => {
       try{
         const { data: sellerInfo, error } = await supabase
-          .from("users")
+          .from("profiles")
           .select("stripeAccountId, vendorType")
           .eq("id", item.seller_id)
           .single();
@@ -111,7 +111,7 @@ const Checkout = () => {
     
     setIsLoading(true);
     try {
-      const res = await axios.post("https://jamazan-backend-1zzk.onrender.com/create-checkout-session", {
+      const res = await axios.post("http://localhost:7000/create-checkout-session", {
         products: enrichedCart,
         userId: userDetails?.id,
         addressId: selectedAddress,
