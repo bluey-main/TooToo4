@@ -131,10 +131,10 @@ const Orders = () => {
                         </section>
                         <section className="flex justify-between text-sm text-gray-700">
                           <p className=" text-gray-500 font-light text-[12px]">
-                            Category
+                            ry
                           </p>
                           <p className=" text-[12px]">
-                            {eachProduct.product.category}
+                            {eachProduct.product.ry}
                           </p>
                         </section>
                       </div>

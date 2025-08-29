@@ -78,13 +78,13 @@ export const AddDeliveryAddress = () => {
         if (error) throw error;
         setSaving(false);
         toast.success("Address saved successfully");
-        fetchAddresses();
+        // fetchAddresses();
         clearFields();
         navigate(-1);
       } catch (error) {
         setSaving(false);
         console.log(error);
-        toast.error("An error occured");
+        toast.error("An error occurred");
       }
     }
   };

@@ -4,7 +4,6 @@ import { Dialog, Disclosure, Transition } from "@headlessui/react";
 import { BsChevronDown, BsPlus, BsX } from "react-icons/bs";
 import { useParams } from "react-router";
 import { supabase } from "../lib/supabase";
-import { capitalizeSentence, numberWithCommas } from "../utils/helper";
 import ProductCard from "@/components/ProductCard";
 import ProductLoader from "@/components/ProductLoader";
 
@@ -57,20 +56,33 @@ const Categories = () => {
   const { id } = useParams();
 
   const getCategoryProducts = async () => {
+    setFetchingAllProducts(true)
     try {
       setFetchingAllProducts(true);
-      const { data, error } = await supabase
-        .from("products")
-        .select("*")
-        .eq("category", capitalizeSentence(id));
+      const {data,error} = await supabase.from("categories").select("id").ilike("name",`%${id}`).maybeSingle();
       if (error) {
-        throw error;
+        console.log("Error", error);
       }
-      setAllProducts(data);
-      setFetchingAllProducts(false);
+      
+      if (!data) {
+        console.log("No category found for:", id);
+        setAllProducts([]); 
+        return;
+      }
+      const {data:categoryData, error:categoryError} = await supabase.from("products").select("*").eq("category_id",data.id)
+
+      if(categoryError){
+        console.log("An Unexpected Error", categoryError);
+      }
+
+
+      setAllProducts(categoryData);
+      setFetchingAllProducts(false)
     } catch (e) {
       setFetchingAllProducts(true);
       console.log(e);
+    }finally{
+      setFetchingAllProducts(false)
     }
 
     return {};
@@ -305,25 +317,18 @@ const Categories = () => {
 
               <div className="grid grid-cols-1 gap-y-4 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-5 lg:gap-x-5 xl:grid-cols-3">
                 {fetchingAllProducts ? (
-                  Array.from({ length: 3 }).map((id) => {
-                    return <ProductLoader key={id} />;
-                  })
-                ) : allProducts.length > 0 ? (
-                  allProducts.map((product) => (
-                    <ProductCard
-                      id={product.id}
-                      name={product.name}
-                      key={product.id}
-                      image={ product.imageUrls }
-                      category={product.category}
-                      isSpecialOffer={product.discountRate !== 0 ? true : false}
-                      discount={product.discountRate}
-                      slashedPrice={numberWithCommas(product.discountedPrice)}
-                      price={numberWithCommas(product.price)}
-                    />
-                  ))
-                ) : (
-                  <p>No Product Found</p>
+                    <div className="col-span-full flex justify-center items-center py-10 text-gray-500">
+                      <ProductLoader />
+                    </div>
+
+                    ) : allProducts.length > 0 ? (
+                      allProducts.map((product) => (
+                      <ProductCard key={product.id} product={product} />
+                    ))
+                  ) : (
+                  <div className="col-span-full flex justify-center items-center py-10 text-gray-500">
+                    No Products in the Category 
+                  </div>
                 )}
               </div>
             </section>

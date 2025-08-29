@@ -31,6 +31,7 @@ const Checkout = () => {
   const [status,setStatus] = useState(null);
   const stripe = useStripe();
   const elements = useElements();
+ 
 
   const updateCartWithStripeId = async () => {
     const cartItemsWithStripeId = await Promise.all(cartItems.map(async (item:CartProduct) => {

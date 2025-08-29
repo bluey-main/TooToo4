@@ -1,8 +1,13 @@
-import React from "react";
+import React from 'react'
+import { ClipLoader } from 'react-spinners'
 
-const ProductLoader: React.FC = () => {
+function ProductLoader() {
   return (
-    <div>ProductLoader</div>
+    <React.Fragment>
+      <div>
+        <ClipLoader/>
+      </div>
+    </React.Fragment>
   )
 }
 
