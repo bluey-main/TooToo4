@@ -79,7 +79,7 @@ function App() {
       icon: <TbBrandAirtable size={30} />,
     },
     {
-      category: "Electronics",
+      category: "Gadgets",
       icon: <BsTv size={30} />,
     },
     {
@@ -87,11 +87,11 @@ function App() {
       icon: <TbDeviceGamepad2 size={30} />,
     },
     {
-      category: "Sports",
+      category: "Fitness",
       icon: <CiDumbbell size={30} />,
     },
     {
-      category: "SuperMarket",
+      category: "Groceries",
       icon: <CiApple size={30} />,
     },
   ];
