@@ -240,7 +240,7 @@ const Product: React.FC<ProductProps> = ({ isAdmin = false }) => {
                   {liked ? <Liked /> : <NotLiked />}
                 </div>
 
-                {selectedProduct.image_urls.length > 0 && (
+                {selectedProduct?.image_urls?.length > 0 && (
                   <img
                     className="rounded-3xl w-full h-full object-contain"
                     src={selectedProduct.image_urls[indexValue].url}
@@ -250,8 +250,8 @@ const Product: React.FC<ProductProps> = ({ isAdmin = false }) => {
               </div>
               <ul className="flex w-full custom-scrollbar overflow-x-auto bg-orange-6 flex-nowrap gap-3 items-center justify-center">
                 <div className="px-[18rem]"></div>
-                {selectedProduct.image_urls.length > 0 ? (
-                  selectedProduct.image_urls.map((item, index) => (
+                {selectedProduct?.image_urls?.length > 0 ? (
+                  selectedProduct?.image_urls?.map((item, index) => (
                     <li
                       className="flex-shrink-0 size-[130px]"
                       key={index}
@@ -259,7 +259,7 @@ const Product: React.FC<ProductProps> = ({ isAdmin = false }) => {
                     >
                       <img
                         className="w-[130px] h-[130px] object-contain cursor-pointer bg-white border rounded-xl bottom-2 hover:opacity-40 hover:border-[#086047] transition duration-200 ease-in-out p-4"
-                        src={item.url}
+                        src={item?.url}
                         alt=""
                       />
                     </li>
@@ -394,7 +394,7 @@ const Product: React.FC<ProductProps> = ({ isAdmin = false }) => {
                   Other Information
                 </h3>
                 <ul className="text-base list-disc space-y-1">
-                  {selectedProduct.other_info.split("\n").map((d, i) => {
+                  {selectedProduct?.other_info?.split("\n").map((d, i) => {
                     return <li key={i}>{d}</li>;
                   })}
                 </ul>

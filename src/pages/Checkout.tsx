@@ -31,6 +31,9 @@ const Checkout = () => {
   const [status,setStatus] = useState(null);
   const stripe = useStripe();
   const elements = useElements();
+  // const host = "https://jamazan-backend-1zzk.onrender.com/"
+  const host = "http://localhost:7000"
+
  
 
   const updateCartWithStripeId = async () => {
@@ -112,7 +115,7 @@ const Checkout = () => {
     
     setIsLoading(true);
     try {
-      const res = await axios.post("http://localhost:7000/create-checkout-session", {
+      const res = await axios.post(`${host}/create-checkout-session`, {
         products: enrichedCart,
         userId: userDetails?.id,
         addressId: selectedAddress,

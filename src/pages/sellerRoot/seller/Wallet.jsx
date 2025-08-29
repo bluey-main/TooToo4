@@ -17,15 +17,18 @@ const Wallet = () => {
     const [disable,setDisable] = useState(false);
     const [checkingVerification, setCheckingVerification] = useState(false);
     const stripeConnectInstance = useStripeConnect(connectedAccountId);
+        const host = import.meta.env.VITE_NODE_ENV === 'production' 
+      ? "https://jamazan-backend-1zzk.onrender.com"
+      : "http://localhost:7000";
 
     const accountStatus = async () => {
         if (!connectedAccountId) return;
 
         setCheckingVerification(true);
         try {
-            const request = await axios.post("https://jamazan-backend-1zzk.onrender.com/account_status", {
+            const request = await axios.post(`${host}/account_status`, {
                 accountId: connectedAccountId,
-                userId: userDetails.uid,
+                userId: userDetails?.id,
             });
             const { verified } = request.data;
             if (verified) {
@@ -47,14 +50,14 @@ const Wallet = () => {
         setError(false);
 
         // Avoid creating a new account if user already has a Stripe account
-        if (userDetails?.stripeAccountId || connectedAccountId) {
+        if (userDetails?.stripe_account_id || connectedAccountId) {
             setError("Stripe account already exists.");
             setAccountCreatePending(false);
             return;
         }
 
         try {
-            const response = await fetch("https://jamazan-backend-1zzk.onrender.com/account", {
+            const response = await fetch(`${host}/account`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -81,11 +84,11 @@ const Wallet = () => {
 
     useEffect(() => {
         const storedInfo = JSON.parse(localStorage.getItem("stripe_account_info"));
-        if (storedInfo?.connectedAccountId) {
-            setConnectedAccountId(storedInfo.connectedAccountId);
+        if (storedInfo?.connected_account_id) {
+            setConnectedAccountId(storedInfo.connected_account_id);
             setVerified(storedInfo.verified);
-        } else if (userDetails?.stripeAccountId) {
-            setConnectedAccountId(userDetails.stripeAccountId);
+        } else if (userDetails?.stripe_account_id) {
+            setConnectedAccountId(userDetails.stripe_account_id);
         }
     }, [userDetails]);
 
@@ -118,7 +121,7 @@ const Wallet = () => {
     const withDraw = async () => {
         setDisable(true);
         try {
-            const request = await axios.post("https://jamazan-backend-1zzk.onrender.com/withdraw", {
+            const request = await axios.post(`${host}/withdraw`, {
                 stripeId: connectedAccountId
             });
             

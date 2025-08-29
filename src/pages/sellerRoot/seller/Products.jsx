@@ -114,7 +114,7 @@ const Products = () => {
             <ClipLoader color="#086047" size={30} />
             <p>Loading Products</p>
           </div>
-        ) : products.length > 0 ? (
+        ) : products?.length > 0 ? (
           <div className="grid p-2 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 gap-x-2 gap-y-5">
             {products.map((eachProduct, index) => {
               return (
@@ -125,7 +125,7 @@ const Products = () => {
                   <div className="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-t-md bg-black/10 lg:aspect-none group-hover:opacity-75 max-h-60 h-full">
                     <img
                       src={
-                        eachProduct.image_urls.length > 0
+                        eachProduct?.image_urls?.length > 0
                           ? eachProduct.image_urls[0].url
                           : "https://placehold.co/600x400"
                       }
