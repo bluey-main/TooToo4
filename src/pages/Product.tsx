@@ -364,7 +364,7 @@ const Product: React.FC<ProductProps> = ({ isAdmin = false }) => {
             </div>
           </div>
           <div>
-            <RelatedProducts category={selectedProduct.category_id} id={id} />
+            {/* <RelatedProducts category={selectedProduct.category_id} id={id} /> */}
           </div>
           <div className="mt-14 bg-white p-10 border rounded-xl">
             <div className="flex gap-10 items-center font-semibold border-b mb-10">
