@@ -31,6 +31,7 @@ const Checkout = () => {
   const [status,setStatus] = useState(null);
   const stripe = useStripe();
   const elements = useElements();
+ 
 
   const updateCartWithStripeId = async () => {
     const cartItemsWithStripeId = await Promise.all(cartItems.map(async (item:CartProduct) => {
@@ -111,7 +112,7 @@ const Checkout = () => {
     
     setIsLoading(true);
     try {
-      const res = await axios.post("https://jamazan-backend-1zzk.onrender.com/create-checkout-session", {
+      const res = await axios.post("http://localhost:7000/create-checkout-session", {
         products: enrichedCart,
         userId: userDetails?.id,
         addressId: selectedAddress,

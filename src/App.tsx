@@ -40,9 +40,7 @@ export interface IProduct {
   category_id:string;
   description:string;
   created_at:string;
-  updated_at:string;
-
-  
+  updated_at:string;  
 }
 
 // Define the type for a single category

@@ -22,7 +22,15 @@ ChartJS.register(
   ArcElement
 );
 
-export function PieChat()
+export function PieChat({
+  // totalVisits = {
+  //   dextop: 300,
+  //   mobile: 300,
+  //   tablet: 200,
+  //   unknown: 100,
+  // },
+  
+})
 
  {
 
