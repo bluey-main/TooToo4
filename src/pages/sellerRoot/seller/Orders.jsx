@@ -23,7 +23,7 @@ const Orders = () => {
       console.log(sellerOrders)
       setLoadingOrders(false);
     }
-  }, []);
+  }, [getSellerOrders]);
 
   return (
     <React.Fragment>

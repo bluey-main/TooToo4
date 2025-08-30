@@ -11,26 +11,27 @@ import { v4 } from "uuid";
 // import { useUser } from "./UserContext";
 import toast from "react-hot-toast";
 import { useAuth } from "./AuthContext";
+import { generateSlug } from "@/utils/auxillary-functions";
 
 // Types
 export interface ProductDetails {
   id?: string;
   name: string;
-  description: string; 
-  other_info: string;//
+  description: string;
+  other_info: string; //
   price: number;
-  discount_rate: number;//
-  discounted_price: number;//
+  discount_rate: number; //
+  discounted_price: number; //
   stock_quantity: number;
   category_id: string;
-  sku: string;//
-  weight: string;//
-  height: string;//
-  width: string;//
-  length: string;//
+  sku: string; //
+  weight: string; //
+  height: string; //
+  width: string; //
+  length: string; //
   image_urls: ImageUrl[];
-  variations: Variation[];//
-  tags: string[];//
+  variations: Variation[]; //
+  tags: string[]; //
   seller_id?: string;
   updated_at?: string;
   created_at?: string;
@@ -92,7 +93,8 @@ interface SellerContextType {
   deleteProductModal: boolean;
   setDeleteProductModal: React.Dispatch<React.SetStateAction<boolean>>;
 
-  doubleConfirmationModal:boolean; setDoubleConfirmationModal:React.Dispatch<React.SetStateAction<boolean>>;
+  doubleConfirmationModal: boolean;
+  setDoubleConfirmationModal: React.Dispatch<React.SetStateAction<boolean>>;
   productToDeleteDetails: ProductToDeleteDetails;
   setProductToDeleteDetails: React.Dispatch<
     React.SetStateAction<ProductToDeleteDetails>
@@ -226,8 +228,7 @@ const SellerProvider: React.FC<SellerProviderProps> = ({ children }) => {
   const [orderUserDetails, setOrderUserDetails] = useState<any>(null);
   const [order, setOrder] = useState<Order | null>(null);
   const [deliveryAddress, setDeliveryAddress] = useState<any>(null);
-    const [doubleConfirmationModal, setDoubleConfirmationModal] = useState(false);
-  
+  const [doubleConfirmationModal, setDoubleConfirmationModal] = useState(false);
 
   const getProductDetailsFromDatabase = async (urlParam: string | null) => {
     setIsLoading(true);
@@ -294,7 +295,7 @@ const SellerProvider: React.FC<SellerProviderProps> = ({ children }) => {
 
   // Updated upload function with proper authentication
   const uploadImageToStorage = async (
-    fileName:string,
+    fileName: string,
     file: File,
     uid: string,
     folderName: string
@@ -442,13 +443,17 @@ const SellerProvider: React.FC<SellerProviderProps> = ({ children }) => {
       if (
         [
           "imageStorageFileName",
-          "imageUrls",
+          "image_urls",
           "tags",
-          // "variations",
+          "variations",
           "id",
-          "sellerId",
-          // "updatedAt",
-          // "createdAt",
+          "seller_id",
+          "updatedAt",
+          "createdAt",
+          "discount_rate",
+          "width",
+          "height",
+          "length",
         ].includes(key)
       ) {
         continue;
@@ -470,7 +475,8 @@ const SellerProvider: React.FC<SellerProviderProps> = ({ children }) => {
     try {
       if (
         !validateProductDetails(productDetails) ||
-        (selectedFiles.length === 0 && productDetails.image_urls.length === 0) ||
+        (selectedFiles.length === 0 &&
+          productDetails.image_urls.length === 0) ||
         // (variations.length === 0 && productDetails.variations.length === 0) ||
         (tags.length === 0 && productDetails.tags.length === 0)
       ) {
@@ -478,18 +484,23 @@ const SellerProvider: React.FC<SellerProviderProps> = ({ children }) => {
         return;
       }
 
-       setIsLoading(true);
+      setIsLoading(true);
       let downloadURLs: ImageUrl[] = [];
-      const folderId = param !== null ? productDetails.id : v4()
+      const folderId = param !== null ? productDetails.id : v4();
 
       // Upload images to Supabase Storage
-      const folderName = folderId
+      const folderName = folderId;
 
       for (const file of selectedFiles) {
         try {
           const fileName = v4();
 
-          const publicUrl = await uploadImageToStorage(fileName, file, uid, folderName);
+          const publicUrl = await uploadImageToStorage(
+            fileName,
+            file,
+            uid,
+            folderName
+          );
 
           downloadURLs.push({
             filename: fileName,
@@ -508,10 +519,16 @@ const SellerProvider: React.FC<SellerProviderProps> = ({ children }) => {
         return;
       }
 
+      const productSlug = await generateSlug(productDetails?.name);
+
       const updatedProductDetails = {
         ...productDetails,
+        slug: productSlug,
         id: folderId,
-  
+        height: productDetails?.height ? Number(productDetails.height) : null,
+        width: productDetails?.width ? Number(productDetails.width) : null,
+        length: productDetails?.length ? Number(productDetails.length) : null,
+
         created_at: new Date().toISOString(),
         seller_id: uid,
         updated_at: new Date().toISOString(),
@@ -537,8 +554,7 @@ const SellerProvider: React.FC<SellerProviderProps> = ({ children }) => {
             })
           );
         }
-        console.log(updatedProductDetails)
-
+        console.log(updatedProductDetails);
 
         console.log("PRODUCT UPDATED");
       } else {
@@ -569,47 +585,52 @@ const SellerProvider: React.FC<SellerProviderProps> = ({ children }) => {
     }
   };
 
-const deleteProductFromDatabase = async (onSuccess) => {
-  try {
-    // Delete product images from Supabase storage
-    if (productToDeleteDetails.fileArray && productToDeleteDetails.fileArray.length > 0) {
-      // Create array of file paths for batch deletion
-      const filePaths = productToDeleteDetails.fileArray.map((item) => 
-        `${userDetails?.id}/${productToDeleteDetails.productId}/${item.filename}`
-      );
+  const deleteProductFromDatabase = async (onSuccess) => {
+    try {
+      // Delete product images from Supabase storage
+      if (
+        productToDeleteDetails.fileArray &&
+        productToDeleteDetails.fileArray.length > 0
+      ) {
+        // Create array of file paths for batch deletion
+        const filePaths = productToDeleteDetails.fileArray.map(
+          (item) =>
+            `${userDetails?.id}/${productToDeleteDetails.productId}/${item.filename}`
+        );
 
-      // Use Supabase storage remove method for batch deletion
-      const { data: deletedFiles, error: storageError } = await supabase.storage
-        .from('product-images') // Replace with your actual bucket name
-        .remove(filePaths);
+        // Use Supabase storage remove method for batch deletion
+        const { data: deletedFiles, error: storageError } =
+          await supabase.storage
+            .from("product-images") // Replace with your actual bucket name
+            .remove(filePaths);
 
-      if (storageError) {
-        console.error('Storage deletion error:', storageError);
-        // Continue with product deletion even if some images fail to delete
+        if (storageError) {
+          console.error("Storage deletion error:", storageError);
+          // Continue with product deletion even if some images fail to delete
+        }
+
+        console.log(filePaths);
       }
 
-      console.log(filePaths)
+      // Delete product from database
+      const { error } = await supabase
+        .from("products")
+        .delete()
+        .eq("id", productToDeleteDetails.productId);
+
+      if (error) throw error;
+
+      setDeleteProductModal(false);
+      setDoubleConfirmationModal(false);
+      toast.success("Product deleted successfully");
+
+      // Call the callback to refetch products
+      if (onSuccess) onSuccess();
+    } catch (error) {
+      console.error("Delete product error:", error);
+      toast.error("Error deleting product");
     }
-
-    // Delete product from database
-    const { error } = await supabase
-      .from("products")
-      .delete()
-      .eq("id", productToDeleteDetails.productId);
-
-    if (error) throw error;
-
-    setDeleteProductModal(false);
-    setDoubleConfirmationModal(false)
-    toast.success("Product deleted successfully");
-
-       // Call the callback to refetch products
-    if (onSuccess) onSuccess();
-  } catch (error) {
-    console.error('Delete product error:', error);
-    toast.error("Error deleting product");
-  }
-};
+  };
 
   const deleteParticularObjectFromStorage = async (
     indexToRemove: number,
@@ -748,13 +769,13 @@ const deleteProductFromDatabase = async (onSuccess) => {
   }, [order, fetchDeliveryDetails, fetchUserDetails]);
 
   const getSellerOrders = async (): Promise<Order[] | undefined> => {
-    if (!userDetails?.uid) return;
+    if (!userDetails?.id) return;
 
     try {
       const { data, error } = await supabase
         .from("orders")
         .select("*")
-        .eq("product_seller_id", userDetails.uid);
+        .eq("product_seller_id", userDetails.id);
 
       if (error) throw error;
 
@@ -796,7 +817,8 @@ const deleteProductFromDatabase = async (onSuccess) => {
     variationsToDeleteFromDbAfterEditing,
     deleteProductModal,
     setDeleteProductModal,
-    doubleConfirmationModal, setDoubleConfirmationModal,
+    doubleConfirmationModal,
+    setDoubleConfirmationModal,
     productToDeleteDetails,
     setProductToDeleteDetails,
     navigateToProductsPage,

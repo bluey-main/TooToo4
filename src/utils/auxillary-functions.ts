@@ -165,3 +165,10 @@ export const addLowerCaseNamesToProducts = async (): Promise<void> => {
       toast.error(`Error updating documents: ${error}`);
     }
   };
+
+
+  export const generateSlug = async (text: string) => {
+  const { data } = await supabase
+    .rpc('generate_slug', { input_text: text });
+  return data;
+};

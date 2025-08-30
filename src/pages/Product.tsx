@@ -50,20 +50,31 @@ const Product: React.FC<ProductProps> = ({ isAdmin = false }) => {
   // const loggedInUser: { uid: string } | null = JSON.parse(
   //   localStorage.getItem("userDetails") || "null"
   // );
-
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+  const cleanSlug = decodeURIComponent(id || "");
 
   const fetchProduct = async () => {
     if (!id) return;
     setLoadingProduct(true);
-    const { data: product, error: productError } = await supabase
+
+    // First try fetching by slug
+    let { data: product, error: productError } = await supabase
       .from("products")
       .select("*")
-      .eq("id", id)
+      .eq("slug", cleanSlug)
       .single();
 
-    console.log(product);
+    // If not found, fall back to ID
+    if (productError || !product) {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("id", cleanSlug)
+        .single();
+
+      product = data;
+      productError = error;
+    }
 
     if (productError || !product) {
       console.error("Error fetching product:", productError);
@@ -71,6 +82,7 @@ const Product: React.FC<ProductProps> = ({ isAdmin = false }) => {
       return;
     }
 
+    // Fetch seller details
     const { data: sellerDetails, error: sellerError } = await supabase
       .from("profiles")
       .select("id, business_name, email, phone_number")
@@ -88,7 +100,7 @@ const Product: React.FC<ProductProps> = ({ isAdmin = false }) => {
     }
 
     setSelectedProduct({
-      id,
+      id: product.slug ?? product.id, // Prefer slug if available
       ...product,
       seller: {
         uid: sellerDetails.id,
@@ -249,7 +261,7 @@ const Product: React.FC<ProductProps> = ({ isAdmin = false }) => {
                 )}
               </div>
               <ul className="flex w-full custom-scrollbar overflow-x-auto bg-orange-6 flex-nowrap gap-3 items-center justify-center">
-                <div className="px-[18rem]"></div>
+                <div className="px-[3rem]"></div>
                 {selectedProduct?.image_urls?.length > 0 ? (
                   selectedProduct?.image_urls?.map((item, index) => (
                     <li

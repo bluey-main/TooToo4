@@ -32,7 +32,7 @@ const Checkout = () => {
   const stripe = useStripe();
   const elements = useElements();
   // const host = "https://jamazan-backend-1zzk.onrender.com/"
-  const host = "http://localhost:7000"
+  const host = import.meta.env.VITE_NODE_ENV === "PRODUCTION" ?"https://jamazan-backend-1zzk.onrender.com/": "http://localhost:7000"
 
  
 
@@ -222,7 +222,7 @@ const Checkout = () => {
                                 </p>
                               </div> */}
                               <p className="mt-1 text-sm font-medium text-gray-900">
-                                ${numberWithCommas(product.price)}
+                                ${numberWithCommas(product.discounted_price)}
                               </p>
                             </div>
 

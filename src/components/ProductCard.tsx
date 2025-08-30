@@ -3,7 +3,7 @@ import { numberWithCommas } from "@/utils/helper";
 import { useNavigate } from "react-router";
 
 interface ProductCardProps {
-  product: IProduct
+  product: IProduct & {slug:string};
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({
@@ -27,10 +27,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
 }
 
 const isSpecialOffer = product?.discount_rate || product?.discount_rate !== 0
+const route = product?.slug ? `/product/${product?.slug}` : `/product/${product?.id}`
   return (
     <div
       key={product?.id}
-      onClick={() => navigate(`/product/${product?.id}`)}
+      onClick={() => navigate(route)}
       className="group cursor-pointer relative border rounded-lg hover:border-[#086047] max-lg:min-w-[200px] h-fit overflow-hidden"
     >
       {isNew(product?.created_at) && (
