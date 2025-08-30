@@ -83,24 +83,24 @@ const BarChart = ({getOrdersFunc}) => {
     setMonths(monthCounts);
   };
 
-  const fetchOrders = async () => {
-    setLoadingData(true);
-    const { data: orders, error } = await supabase.from("orders").select("*");
-    if (error) {
-      console.error("Error fetching orders:", error);
-      setLoadingData(false);
-      return;
-    }
-    const timeStamp = orders.map((eachOrder) =>
-      getMonth(new Date(eachOrder.created_at).getSeconds())
-    );
-    filterOrders(timeStamp);
-    setLoadingData(false);
-  };
+  // const fetchOrders = async () => {
+  //   setLoadingData(true);
+  //   const { data: orders, error } = await supabase.from("orders").select("*");
+  //   if (error) {
+  //     console.error("Error fetching orders:", error);
+  //     setLoadingData(false);
+  //     return;
+  //   }
+  //   const timeStamp = orders.map((eachOrder) =>
+  //     getMonth(new Date(eachOrder.created_at).getSeconds())
+  //   );
+  //   filterOrders(timeStamp);
+  //   setLoadingData(false);
+  // };
 
   useEffect(() => {
     
-    fetchOrders();
+    // fetchOrders();
   }, []);
 
   const options = {

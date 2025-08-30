@@ -11,32 +11,32 @@ const AdminDashboard = () => {
   const [totalSales, setTotalSales] = useState(0);
   const [yesterOrders, setYesterdayOrders] = useState(0);
 
-  const fetchOrders = async()=>{
-    const { data: orders, error } = await supabase.from("orders").select("*");
-    if (error) {
-      console.error("Error fetching orders:", error);
-      return;
-    }
-    const totalSales = orders.reduce((acc, eachOrder)=>{
-      const price = Number(eachOrder.product.price)*eachOrder.product.quantity;
-      return acc+=price;
-    }, 0)
-    const orderYesterday = orders.filter((eachOrder)=>{
-      const today = new Date();
-      const date = new Date(eachOrder.created_at);
-      const yesterday = new Date(date.getTime() - 86400000).getDate();
-      if(today.getDate()-yesterday==5){
-        return eachOrder;
-      }
-    })
-    setTotalSales(totalSales)
-    setTotalOrders(orders.length)
-    setYesterdayOrders(orderYesterday.length)
-  }
+  // const fetchOrders = async()=>{
+  //   const { data: orders, error } = await supabase.from("orders").select("*");
+  //   if (error) {
+  //     console.error("Error fetching orders:", error);
+  //     return;
+  //   }
+  //   const totalSales = orders.reduce((acc, eachOrder)=>{
+  //     const price = Number(eachOrder.product.price)*eachOrder.product.quantity;
+  //     return acc+=price;
+  //   }, 0)
+  //   const orderYesterday = orders.filter((eachOrder)=>{
+  //     const today = new Date();
+  //     const date = new Date(eachOrder.created_at);
+  //     const yesterday = new Date(date.getTime() - 86400000).getDate();
+  //     if(today.getDate()-yesterday==5){
+  //       return eachOrder;
+  //     }
+  //   })
+  //   setTotalSales(totalSales)
+  //   setTotalOrders(orders.length)
+  //   setYesterdayOrders(orderYesterday.length)
+  // }
 
-  useEffect(()=>{
-    fetchOrders();
-  },[])
+  // useEffect(()=>{
+  //   fetchOrders();
+  // },[])
 
 
 

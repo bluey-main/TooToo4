@@ -21,9 +21,11 @@ const Dashboard = () => {
     const [isCanceling, setIsCanceling] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    const host = import.meta.env.VITE_NODE_ENV === 'production' 
-      ? "https://jamazan-backend-1zzk.onrender.com"
-      : "http://localhost:7000";
+    // const host = import.meta.env.VITE_NODE_ENV === 'production' 
+    //   ? "https://jamazan-backend-1zzk.onrender.com"
+    //   : "http://localhost:7000";
+
+    const host = "http://localhost:7000";
 
     const fetchSubscriptionStatus = useCallback(async () => {
       if (!userDetails || !userDetails.id) return { hasAccess: false, isCanceling: false };
@@ -48,46 +50,46 @@ const Dashboard = () => {
       }
     }, [userDetails, refetchUserData]);
 
-    const fetchOrders = useCallback(async () => {
-      try {
-        const orders = await getSellerOrders();
+    // const fetchOrders = useCallback(async () => {
+    //   try {
+    //     const orders = await getSellerOrders();
         
-        if (!orders || orders.length === 0) {
-          setTotalSales(0);
-          setTotalOrders(0);
-          setYesterdayOrders(0);
-          return;
-        }
+    //     if (!orders || orders.length === 0) {
+    //       setTotalSales(0);
+    //       setTotalOrders(0);
+    //       setYesterdayOrders(0);
+    //       return;
+    //     }
 
-        const totalSales = orders.reduce((acc, eachOrder) => {
-          const price = Number(eachOrder.product?.price || 0) * (eachOrder.product?.quantity || 0);
-          return acc + price;
-        }, 0);
+    //     const totalSales = orders.reduce((acc, eachOrder) => {
+    //       const price = Number(eachOrder.product?.price || 0) * (eachOrder.product?.quantity || 0);
+    //       return acc + price;
+    //     }, 0);
 
-        // Fixed yesterday orders calculation
-        const today = new Date();
-        const yesterday = new Date(today.getTime() - 86400000); // 24 hours ago
+    //     // Fixed yesterday orders calculation
+    //     const today = new Date();
+    //     const yesterday = new Date(today.getTime() - 86400000); // 24 hours ago
         
-        const orderYesterday = orders.filter((eachOrder) => {
-          if (!eachOrder.createdOn?.seconds) return false;
+    //     const orderYesterday = orders.filter((eachOrder) => {
+    //       if (!eachOrder.createdOn?.seconds) return false;
           
-          const orderDate = new Date(eachOrder.createdOn.seconds * 1000);
-          const orderDay = orderDate.toDateString();
-          const yesterdayDay = yesterday.toDateString();
+    //       const orderDate = new Date(eachOrder.createdOn.seconds * 1000);
+    //       const orderDay = orderDate.toDateString();
+    //       const yesterdayDay = yesterday.toDateString();
           
-          return orderDay === yesterdayDay;
-        });
+    //       return orderDay === yesterdayDay;
+    //     });
 
-        setTotalSales(totalSales);
-        setTotalOrders(orders.length);
-        setYesterdayOrders(orderYesterday.length);
-      } catch (error) {
-        console.error("Error fetching orders:", error);
-        setTotalSales(0);
-        setTotalOrders(0);
-        setYesterdayOrders(0);
-      }
-    }, [getSellerOrders]);
+    //     setTotalSales(totalSales);
+    //     setTotalOrders(orders.length);
+    //     setYesterdayOrders(orderYesterday.length);
+    //   } catch (error) {
+    //     console.error("Error fetching orders:", error);
+    //     setTotalSales(0);
+    //     setTotalOrders(0);
+    //     setYesterdayOrders(0);
+    //   }
+    // }, [getSellerOrders]);
 
     useEffect(() => {
       const checkSubscriptionStatus = async () => {
@@ -113,11 +115,11 @@ const Dashboard = () => {
       }
     }, [userDetails?.id, fetchSubscriptionStatus]);
 
-    useEffect(() => {
-      if (userDetails?.id) {
-        fetchOrders();
-      }
-    }, [userDetails?.id, fetchOrders]);
+    // useEffect(() => {
+    //   if (userDetails?.id) {
+    //     fetchOrders();
+    //   }
+    // }, [userDetails?.id, fetchOrders]);
 
     const handleSubscribe = async () => {
       if (!userDetails?.id) {
@@ -170,7 +172,7 @@ const Dashboard = () => {
           toast.success("Subscription will cancel at the end of the billing period.");
           await fetchSubscriptionStatus();
         } else {
-          toast.error("Failed to cancel subscription.");
+          toast.error("Failed to cancel subscription...");
         }
       } catch (error) {
         toast.error("Failed to cancel subscription.");
@@ -185,6 +187,7 @@ const Dashboard = () => {
         toast.error("Missing subscription information");
         return;
       }
+      console.log(" USER details", userDetails)
       
       setLoading(true);
       try {
