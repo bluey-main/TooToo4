@@ -75,7 +75,7 @@ const Orders = () => {
                             Product
                           </p>
                           <p className=" text-[12px]">
-                            {eachProduct.product.name}
+                            {eachProduct?.product?.name}
                           </p>
                         </section>
                         <section className="flex justify-between text-sm text-gray-700">
@@ -83,7 +83,7 @@ const Orders = () => {
                             Date
                           </p>
                           <p className=" text-xs">
-                            {formatDateToDDMMYYYY(eachProduct.createdOn)}
+                            {formatDateToDDMMYYYY(eachProduct?.createdOn)}
                           </p>
                         </section>
                         <section className="flex justify-between text-sm text-gray-700">

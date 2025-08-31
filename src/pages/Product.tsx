@@ -41,6 +41,7 @@ interface IParticularProduct extends IProduct {
 const Product: React.FC<ProductProps> = ({ isAdmin = false }) => {
   const { loading, reduceProductQuantity, addToCart, isItemInCart } = useCart();
   const { userDetails } = useAuth();
+  const navigate = useNavigate();
   const [indexValue, setIndexValue] = useState(0);
   const [selectedProduct, setSelectedProduct] =
     useState<IParticularProduct | null>(null);
@@ -113,87 +114,86 @@ const Product: React.FC<ProductProps> = ({ isAdmin = false }) => {
     setLoadingProduct(false);
   };
 
-  const checkIfLiked = async () => {
-    if (!userDetails) return;
-    try {
-      const { data: userData, error } = await supabase
-        .from("users")
-        .select("likedItems")
-        .eq("id", userDetails.id)
-        .single<SupabaseUser>();
+const checkIfLiked = async () => {
+  if (!userDetails) return;
 
-      if (error) throw error;
+  try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) return;
 
-      const likedProducts = userData?.likedItems || [];
-      if (likedProducts.some((p) => p.id === id)) {
-        setLiked(true);
-      }
-    } catch (error) {
-      console.error("Error checking if liked:", error);
+    const { data, error } = await supabase
+      .from("liked_items")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("product_id", id)
+      .single();
+
+    if (error && error.code !== "PGRST116") {
+      console.error("Error fetching like:", error);
+      return;
     }
-  };
+
+    setLiked(!!data); // true if found, false if not
+  } catch (err) {
+    console.error("Error checking if liked:", err);
+  }
+};
 
   const likedProduct = async () => {
-    if (!userDetails) {
-      return toast.error("Please login to like the product");
+  if (!userDetails) return toast.error("Please login to like the product");
+
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) {
+    toast.error("You must be logged in to like a product");
+    return;
+  }
+
+  const { data: likedItem, error: fetchError } = await supabase
+    .from("liked_items")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("product_id", id)
+    .single();
+
+  if (fetchError && fetchError.code !== "PGRST116") {
+    console.error("Fetch error:", fetchError);
+    toast.error("Error fetching liked items");
+    return;
+  }
+
+  if (likedItem) {
+    // unlike
+    const { error: deleteError } = await supabase
+      .from("liked_items")
+      .delete()
+      .eq("id", likedItem.id);
+
+    if (deleteError) {
+      toast.error("Failed to unlike product");
+    } else {
+      setLiked(false);
+      toast.success("Product unliked");
     }
-    if (!liked && selectedProduct) {
-      try {
-        const { data: userData, error: fetchError } = await supabase
-          .from("profiles")
-          .select("likedItems")
-          .eq("id", userDetails.id)
-          .single<SupabaseUser>();
+  } else {
+    // like
+    const { error: insertError } = await supabase
+      .from("liked_items")
+      .insert([{ user_id: user.id, product_id: id }]);
 
-        if (fetchError) throw fetchError;
-
-        const currentLikedItems = userData?.likedItems || [];
-        const updatedLikedItems = [...currentLikedItems, selectedProduct];
-
-        const { error: updateError } = await supabase
-          .from("profiles")
-          .update({ likedItems: updatedLikedItems })
-          .eq("id", userDetails.uid);
-
-        if (updateError) throw updateError;
-
-        setLiked(true);
-        toast.success("Product added to liked items!");
-      } catch (error) {
-        console.error("Error adding to liked items:", error);
-        toast.error("Failed to like the product. Please try again.");
-      }
+    if (insertError) {
+      toast.error("Failed to like product");
+    } else {
+      setLiked(true);
+      toast.success("Product liked");
     }
-  };
+  }
+};
 
   useEffect(() => {
     fetchProduct();
   }, []);
 
   useEffect(() => {
-    const checkIfLikedItemsArrayExist = async () => {
-      if (!userDetails) return;
-      try {
-        const { data: userData, error } = await supabase
-          .from("profiles")
-          .select("likedItems")
-          .eq("id", userDetails.id)
-          .single<SupabaseUser>();
-
-        if (error) throw error;
-
-        if (!userData?.likedItems) {
-          await supabase
-            .from("profiles")
-            .update({ likedItems: [] })
-            .eq("id", userDetails.id);
-        }
-      } catch (error) {
-        console.error("Error checking if liked items array exist:", error);
-      }
-    };
-
-    checkIfLikedItemsArrayExist();
     checkIfLiked();
   }, []);
 
