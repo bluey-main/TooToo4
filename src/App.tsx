@@ -23,7 +23,7 @@ import ProductLoader from "./components/ProductLoader";
 export interface IProduct {
   id: string;
   name: string;
-  image_urls: { url: string , filename:string }[];
+  image_urls?: { url: string , filename:string }[];
   category: string;
   price: number;
   tags: string[];

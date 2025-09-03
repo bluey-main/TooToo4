@@ -27,7 +27,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 }
 
 const isSpecialOffer = product?.discount_rate || product?.discount_rate !== 0
-const route = product?.slug ? `/product/${product?.slug}` : `/product/${product?.id}`
+const route =  `/product/${product?.id}`
   return (
     <div
       key={product?.id}
@@ -48,7 +48,7 @@ const route = product?.slug ? `/product/${product?.slug}` : `/product/${product?
         
         <img
         title={product?.name}
-          src={product?.image_urls?.length > 0 ? product?.image_urls[0]?.url : "https://placehold.co/600x400"}
+          src={product?.image_urls?.length ? product?.image_urls[0]?.url : "https://placehold.co/600x400"}
           className="h-full w-full object-cover object-center lg:h-full lg:w-full"
         />
       </div>

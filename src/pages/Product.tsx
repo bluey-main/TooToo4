@@ -191,7 +191,7 @@ const checkIfLiked = async () => {
 
   useEffect(() => {
     fetchProduct();
-  }, []);
+  }, [id]);
 
   useEffect(() => {
     checkIfLiked();
@@ -286,7 +286,7 @@ const checkIfLiked = async () => {
                 onClick={() =>
                   navigate(`/vendor/${selectedProduct?.seller?.uid}`)
                 }
-                className="text-[#086047] font-bold mb-5 cursor-pointer"
+                className="text-[#086047]  w-fit font-bold mb-5 cursor-pointer"
               >
                 {selectedProduct?.seller?.business_name}
               </p>
@@ -413,6 +413,7 @@ const checkIfLiked = async () => {
               </div>
             )}
           </div>
+          <RelatedProducts category_id={selectedProduct.category_id}/>
         </>
       ) : (
         <div className=" hidden"></div>

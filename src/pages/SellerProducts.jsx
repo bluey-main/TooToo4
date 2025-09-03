@@ -4,7 +4,6 @@ import { Dialog, Disclosure, Transition } from "@headlessui/react";
 import { BsChevronDown, BsX } from "react-icons/bs";
 import { useParams } from "react-router";
 import { supabase } from "../lib/supabase";
-import { numberWithCommas } from "../utils/helper";
 import ProductCard from "@/components/ProductCard";
 import ProductLoader from "@/components/ProductLoader";
 
@@ -63,20 +62,18 @@ const SellerProducts = () => {
       const { data: products, error: productsError } = await supabase
         .from("products")
         .select("*")
-        .eq("sellerId", id);
+        .eq("seller_id", id);
       if (productsError) {
         throw productsError;
       }
       const { data: seller, error: sellerError } = await supabase
-        .from("users")
+        .from("profiles")
         .select("*")
         .eq("id", id)
         .single();
       if (sellerError) {
         throw sellerError;
       }
-      console.log(products);
-      console.log("VENDOR DETAILS", seller);
       setAllProducts(products);
       setSeller(seller);
       setFetchingAllProducts(false);
@@ -231,7 +228,7 @@ const SellerProducts = () => {
                   aria-current="page"
                   className="font-medium text-gray-500 hover:text-gray-600 capitalize"
                 >
-                  {seller?.businessName}
+                  {seller?.business_name}
                 </a>
               </li>
             </ol>
@@ -241,71 +238,14 @@ const SellerProducts = () => {
         <main className="mx-auto max-w-2xl px-4 lg:max-w-7xl lg:px-8">
           <div className="border-b border-gray-200 pb-10 pt-10">
             <h1 className="text-4xl font-bold tracking-tight text-gray-900 capitalize">
-              {seller?.businessName}
+              {seller?.business_name}
             </h1>
-            {/* <p className="mt-4 text-base text-gray-500">
-              Checkout out the latest release of Basic Tees, new and improved
-              with four openings!
-            </p> */}
+            <p className="mt-4 text-base text-gray-500">
+              Checkout out the latest release of Products from <span className=" font-semibold text-[#086047]">{seller.business_name}</span> catalogue 
+            </p>
           </div>
 
           <div className="pb-24 pt-12 lg:grid lg:grid-cols-3 lg:gap-x-8 xl:grid-cols-4">
-            {/* <aside>
-              <h2 className="sr-only">Filters</h2>
-
-              <button
-                type="button"
-                className="inline-flex items-center lg:hidden"
-                onClick={() => setMobileFiltersOpen(true)}
-              >
-                <span className="text-sm font-medium text-gray-700">
-                  Filters
-                </span>
-                <BsPlus
-                  className="ml-1 h-5 w-5 flex-shrink-0 text-gray-400"
-                  aria-hidden="true"
-                />
-              </button>
-
-              <div className="hidden lg:block">
-                <form className="space-y-10 divide-y divide-gray-200">
-                  {filters.map((section, sectionIdx) => (
-                    <div
-                      key={section.name}
-                      className={sectionIdx === 0 ? null : "pt-10"}
-                    >
-                      <fieldset>
-                        <legend className="block text-sm font-medium text-gray-900">
-                          {section.name}
-                        </legend>
-                        <div className="space-y-3 pt-6">
-                          {section.options.map((option, optionIdx) => (
-                            <div
-                              key={option.value}
-                              className="flex items-center"
-                            >
-                              <input
-                                id={`${section.id}-${optionIdx}`}
-                                name={`${section.id}[]`}
-                                defaultValue={option.value}
-                                type="checkbox"
-                                className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                              />
-                              <label
-                                htmlFor={`${section.id}-${optionIdx}`}
-                                className="ml-3 text-sm text-gray-600"
-                              >
-                                {option.label}
-                              </label>
-                            </div>
-                          ))}
-                        </div>
-                      </fieldset>
-                    </div>
-                  ))}
-                </form>
-              </div>
-            </aside> */}
 
             <section
               aria-labelledby="product-heading"
@@ -315,29 +255,31 @@ const SellerProducts = () => {
                 Products
               </h2>
 
-              <div className="grid grid-cols-1 gap-y-4 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-5 lg:gap-x-5 xl:grid-cols-3">
                 {fetchingAllProducts ? (
-                  Array.from({ length: 3 }).map((id) => {
-                    return <ProductLoader key={id} />;
-                  })
-                ) : allProducts.length > 0 ? (
-                  allProducts.map((product) => (
+                  <div className=" flex flex-col items-center py-10 ">
+                    <ProductLoader key={id} />
+                    <h1 className=" text-[#086047] font-semi-bold text-lg ">Loading Vendors Catalogue...</h1>
+                  </div>
+              ) : allProducts.length > 0 ? (
+                <div className="grid grid-cols-1 gap-y-4 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-5 lg:gap-x-5 xl:grid-cols-3">
+                  {allProducts.map((product) => (
                     <ProductCard
-                      id={product.id}
-                      name={product.name}
                       key={product.id}
-                      image={ product.imageUrls }
-                      category={product.category}
-                      isSpecialOffer={product.discountRate !== 0 ? true : false}
-                      discount={product.discountRate}
-                      slashedPrice={numberWithCommas(product.discountedPrice)}
-                      price={numberWithCommas(product.price)}
+                      product={product}
                     />
-                  ))
-                ) : (
-                  <p>No Product Found</p>
-                )}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+                  <h2 className="text-xl font-semibold text-gray-800">
+                    No Product Found
+                  </h2>
+                  <p className="text-gray-500 mt-2">
+                    We couldn’t find any products matching your search.  
+                    Try adjusting your filters or check back later.
+                  </p>
+                </div>
+              )}
             </section>
           </div>
         </main>
