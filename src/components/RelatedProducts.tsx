@@ -14,20 +14,20 @@ interface Product {
 }
 
 interface RelatedProductsProps {
-  category: string;
+  category_id: string;
   id: string;
 }
 
-const RelatedProducts: React.FC<RelatedProductsProps> = ({ category, id }) => {
+const RelatedProducts: React.FC<RelatedProductsProps> = ({ category_id }) => {
   const [products, setProducts] = useState<Product[]>([]);
 
   const fetchProducts = async () => {
     const { data, error } = await supabase
       .from("products")
       .select("*")
-      .eq("category_id", category)
-      .neq("id", id)
+      .eq("category_id", category_id)
       .limit(4);
+
     if (error) {
       console.log(error);
     } else {
@@ -37,7 +37,7 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({ category, id }) => {
 
   useEffect(() => {
     fetchProducts();
-  }, [category, id]);
+  }, [category_id,]);
 
   return (
     <div className="bg-white">
@@ -49,15 +49,7 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({ category, id }) => {
         <div className="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
           {products.map((product) => (
             <ProductCard
-              key={product.id}
-              id={product.id}
-              name={product.name}
-              image={product.imageUrls}
-              price={product.price}
-              category={product.category}
-              isSpecialOffer={product.discountRate !== 0 ? true : false}
-              discount={product.discountRate.toString()}
-              slashedPrice={product.discountedPrice}
+              product={product}
             />
           ))}
         </div>
