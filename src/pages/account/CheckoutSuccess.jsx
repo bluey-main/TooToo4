@@ -2,20 +2,50 @@ import  { useEffect } from "react";
 import { BsArrowRight } from "react-icons/bs";
 import { Link } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
+import { supabase } from "@/lib/supabase";
 
 const CheckoutSuccess = () => {
   const { clearCart } = useCart();
 
-  useEffect(() => {
+useEffect(() => {
     const status = new URLSearchParams(window.location.search).get("status");
-    if(!status){ 
-      console.log("No Status");
-      return
+    const orderId = new URLSearchParams(window.location.search).get("orderId");
+
+    if (!status || !orderId) {
+      console.log("Missing status or orderId");
+      return;
     }
-    if(status==="true"){
-      console.log("OKAY");
-      clearCart();
-    }
+
+    const verifyOrder = async () => {
+      if (status === "true") {
+        // ✅ Check if order exists in DB
+        const { data: order, error } = await supabase
+          .from("orders")
+          .select("id, payment_status")
+          .eq("id", orderId)
+          .single();
+
+        if (error) {
+          console.error("Order lookup failed:", error);
+          return;
+        }
+
+        if (order) {
+          console.log("✅ Order exists:", order);
+          
+          // Only clear cart if order is actually marked paid
+          if (order.payment_status === "paid") {
+            clearCart();
+          } else {
+            console.log("⚠️ Order not paid yet, not clearing cart");
+          }
+        } else {
+          console.log("❌ No order found with that ID");
+        }
+      }
+    };
+
+    verifyOrder();
   }, []);
   
   return (
