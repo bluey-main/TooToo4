@@ -31,7 +31,7 @@ const Checkout = () => {
   const [status,setStatus] = useState(null);
   const stripe = useStripe();
   const elements = useElements();
-  const host = "https://jamazan-backend-ao9e.onrender.com";
+  const host = "https://jamazan-backend-ao9e.onrender.com/";
   // const host = import.meta.env.VITE_NODE_ENV === "PRODUCTION" ?"https://jamazan-backend-ao9e.onrender.com": "http://localhost:7000"
 
  
