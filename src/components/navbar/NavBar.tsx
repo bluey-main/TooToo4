@@ -255,7 +255,7 @@ const NavBar = () => {
                 )}
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="md:flex hidden items-center gap-3">
               <div className="flex items-center gap-2 text-sm cursor-pointer hover:bg-black/[5%] rounded-md p-2 px-3">
                 <BsQuestionCircle />
                 <p>Help</p>
