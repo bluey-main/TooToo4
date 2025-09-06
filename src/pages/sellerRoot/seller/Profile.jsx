@@ -20,7 +20,7 @@ function Profile() {
   useEffect(()=>{
     const fetchVendorBalance = async()=>{
       try{
-        const response = await axios.post("https://jamazan-backend-1zzk.onrender.com/vendor-balance",{
+        const response = await axios.post("https://jamazan-backend-ao9e.onrender.com/vendor-balance",{
           stripeId:userDetails.stripeAccountId
         },{
           withCredentials:true

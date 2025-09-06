@@ -9,7 +9,7 @@ export const useStripeConnect = (connectedAccountId)=>{
 
         const fetchClientSecret = async()=>{
             try{
-                const response = await fetch("https://jamazan-backend-1zzk.onrender.com/account_session",{
+                const response = await fetch("https://jamazan-backend-ao9e.onrender.com/account_session",{
                     method:"POST",
                     headers:{
                         "Content-Type":"application/json"

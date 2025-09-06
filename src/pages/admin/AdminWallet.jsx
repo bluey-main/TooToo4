@@ -16,12 +16,12 @@ const AdminWallet = () => {
     setError(null);
 
     try {
-      const [balance,transactions] = await Promise.all([axios.get("https://jamazan-backend-1zzk.onrender.com/balance", {
+      const [balance,transactions] = await Promise.all([axios.get("https://jamazan-backend-ao9e.onrender.com/balance", {
         withCredentials: true,
         headers: {
           'Content-Type': 'application/json',
         }
-      }),axios.get("https://jamazan-backend-1zzk.onrender.com/transactions", {
+      }),axios.get("https://jamazan-backend-ao9e.onrender.com/transactions", {
         withCredentials: true,
         headers: {
           'Content-Type': 'application/json',

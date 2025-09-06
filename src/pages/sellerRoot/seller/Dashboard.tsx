@@ -22,7 +22,7 @@ const Dashboard = () => {
     const [loading, setLoading] = useState(false);
 
     // const host = import.meta.env.VITE_NODE_ENV === 'production' 
-    //   ? "https://jamazan-backend-1zzk.onrender.com"
+    //   ? "https://jamazan-backend-ao9e.onrender.com"
     //   : "http://localhost:7000";
 
     const host = "http://localhost:7000";
