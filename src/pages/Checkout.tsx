@@ -22,7 +22,7 @@ const Checkout = () => {
     removeFromCart,
     getCartTotal
   } = useCart();
-  const {  userDetails } = useAuth();
+  const { currentUser, userDetails } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [enrichedCart, setEnrichedCart] = useState([])
@@ -31,8 +31,8 @@ const Checkout = () => {
   const [status,setStatus] = useState(null);
   const stripe = useStripe();
   const elements = useElements();
-  // const host = "https://jamazan-backend-ao9e.onrender.com"
-  const host = import.meta.env.VITE_NODE_ENV === "PRODUCTION" ?"https://jamazan-backend-ao9e.onrender.com": "http://localhost:7000"
+  const host = "https://jamazan-backend-ao9e.onrender.com"
+  // const host = import.meta.env.VITE_NODE_ENV === "PRODUCTION" ?"https://jamazan-backend-ao9e.onrender.com": "http://localhost:7000"
 
  
 
@@ -115,7 +115,7 @@ const Checkout = () => {
     
     setIsLoading(true);
     try {
-      const res = await axios.post(`${host}create-checkout-session`, {
+      const res = await axios.post(`${host}/create-checkout-session`, {
         products: enrichedCart,
         userId: userDetails?.id,
         addressId: selectedAddress,
