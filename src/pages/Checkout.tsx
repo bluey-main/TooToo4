@@ -17,7 +17,7 @@ import { CartProduct } from "@/types/types";
 
 const Checkout = () => {
   const { cartItems, addToCart, removeFromCart, getCartTotal } = useCart();
-  const { currentUser, userDetails } = useAuth();
+  const { userDetails } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [enrichedCart, setEnrichedCart] = useState([]);
@@ -45,6 +45,7 @@ const Checkout = () => {
           if (error) {
             throw error;
           }
+          // console.log("Supabase Data", sellerInfo)
 
           return {
             ...item,
