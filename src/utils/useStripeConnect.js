@@ -3,13 +3,17 @@ import { loadConnectAndInitialize } from "@stripe/connect-js";
 
 export const useStripeConnect = (connectedAccountId)=>{
     const [stripeConnectInstance, setStripeConnectInstance] = useState();
+     const host =
+    import.meta.env.VITE_NODE_ENV === "PRODUCTION"
+      ? import.meta.env.VITE_BACKEND_URL
+      : "http://localhost:7000";
 
     useEffect(()=>{
         if(!connectedAccountId) return;
 
         const fetchClientSecret = async()=>{
             try{
-                const response = await fetch("https://jamazan-backend-ao9e.onrender.com/account_session",{
+                const response = await fetch(`${host}/account_session`,{
                     method:"POST",
                     headers:{
                         "Content-Type":"application/json"

@@ -21,11 +21,12 @@ const Dashboard = () => {
     const [isCanceling, setIsCanceling] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    // const host = import.meta.env.VITE_NODE_ENV === 'production' 
-    //   ? "https://jamazan-backend-ao9e.onrender.com"
-    //   : "http://localhost:7000";
-
-    const host = "http://localhost:7000";
+ const host =
+    import.meta.env.VITE_NODE_ENV === "PRODUCTION"
+      ? import.meta.env.VITE_BACKEND_URL
+      : "http://localhost:7000";
+      
+    // const host = "http://localhost:7000";
 
     const fetchSubscriptionStatus = useCallback(async () => {
       if (!userDetails || !userDetails.id) return { hasAccess: false, isCanceling: false };

@@ -14,13 +14,16 @@ function Profile() {
   const [balance,setBalance] = useState(0);
   const { userDetails } = useAuth();
   const {sellerOrders, getSellerOrders} = useSeller()
-
+ const host =
+    import.meta.env.VITE_NODE_ENV === "PRODUCTION"
+      ? import.meta.env.VITE_BACKEND_URL
+      : "http://localhost:7000";
   
 
   useEffect(()=>{
     const fetchVendorBalance = async()=>{
       try{
-        const response = await axios.post("https://jamazan-backend-ao9e.onrender.com/vendor-balance",{
+        const response = await axios.post(`${host}/vendor-balance`,{
           stripeId:userDetails.stripeAccountId
         },{
           withCredentials:true

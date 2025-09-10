@@ -1,4 +1,4 @@
-import {  useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useCart } from "../context/CartContext";
 import { FaMinus, FaPlus } from "react-icons/fa";
 import { BsArrowRight, BsCheck, BsClock } from "react-icons/bs";
@@ -16,69 +16,70 @@ import { AccountHeader } from "@/components/account/AccountHeader";
 import { CartProduct } from "@/types/types";
 
 const Checkout = () => {
-  const {
-    cartItems,
-    addToCart,
-    removeFromCart,
-    getCartTotal
-  } = useCart();
+  const { cartItems, addToCart, removeFromCart, getCartTotal } = useCart();
   const { currentUser, userDetails } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [enrichedCart, setEnrichedCart] = useState([])
+  const [enrichedCart, setEnrichedCart] = useState([]);
   const [email, setEmail] = useState("");
   const [selectedAddress, setSelectedAddress] = useState("");
-  const [status,setStatus] = useState(null);
+  const [status, setStatus] = useState(null);
   const stripe = useStripe();
   const elements = useElements();
-  const host = "https://jamazan-backend-ao9e.onrender.com";
-  // const host = import.meta.env.VITE_NODE_ENV === "PRODUCTION" ?"https://jamazan-backend-ao9e.onrender.com": "http://localhost:7000"
-
- 
+  // const host = "https://jamazan-backend-ao9e.onrender.com";
+  const host =
+    import.meta.env.VITE_NODE_ENV === "PRODUCTION"
+      ? import.meta.env.VITE_BACKEND_URL
+      : "http://localhost:7000";
 
   const updateCartWithStripeId = async () => {
-    const cartItemsWithStripeId = await Promise.all(cartItems.map(async (item:CartProduct) => {
-      try{
-        const { data: sellerInfo, error } = await supabase
-          .from("profiles")
-          .select("stripeAccountId, vendorType")
-          .eq("id", item.seller_id)
-          .single();
+    const cartItemsWithStripeId = await Promise.all(
+      cartItems.map(async (item: CartProduct) => {
+        try {
+          const { data: sellerInfo, error } = await supabase
+            .from("profiles")
+            .select("stripeAccountId, vendorType")
+            .eq("id", item.seller_id)
+            .single();
 
-        if (error) {
-          throw error;
+          if (error) {
+            throw error;
+          }
+
+          return {
+            ...item,
+            stripeId: sellerInfo?.stripeAccountId,
+            vendorType: sellerInfo?.vendorType || "basic",
+          };
+        } catch (error) {
+          console.error(
+            `Failed to fetch seller info for ${item.seller_id}`,
+            error
+          );
+          return {
+            ...item,
+            stripeId: null,
+            vendorType: "basic",
+          };
         }
-
-        return {
-          ...item,
-          stripeId: sellerInfo?.stripeAccountId,
-          vendorType: sellerInfo?.vendorType || "basic",
-        };
-      }catch(error){
-        console.error(`Failed to fetch seller info for ${item.seller_id}`, error);
-        return {
-          ...item,
-          stripeId: null,
-          vendorType: "basic",
-        };
-      }
-    }));
+      })
+    );
     console.log(cartItemsWithStripeId);
     setEnrichedCart(cartItemsWithStripeId);
   };
 
-  useEffect(()=>{
+  useEffect(() => {
     updateCartWithStripeId();
-  },[]);
+  }, []);
 
-  
-  useEffect(()=>{
-    const sessionId = new URLSearchParams(window.location.search).get("session_id");
+  useEffect(() => {
+    const sessionId = new URLSearchParams(window.location.search).get(
+      "session_id"
+    );
     if (!sessionId) return;
 
     const fetchSession = async () => {
-      
-      try{
+      try {
         const response = await fetch(`/session-status?session_id=${sessionId}`);
         const data = await response.json();
         setStatus(data.status);
@@ -86,54 +87,58 @@ const Checkout = () => {
         if (data.status === "complete") {
           const newUrl = window.location.origin + window.location.pathname;
           window.history.replaceState({}, document.title, newUrl);
-        }else{
-          console.log("SOMETHING ELSE",data);
+        } else {
+          console.log("SOMETHING ELSE", data);
         }
-      }catch(error){
+      } catch (error) {
         console.error(error);
       }
-    }
+    };
     fetchSession();
-  },[]);
-
+  }, []);
 
   const makePayment = async () => {
     console.log(
-        "products:", enrichedCart,
-        "userId:", userDetails?.id,
-        "addressId:", selectedAddress,
-      )
+      "products:",
+      enrichedCart,
+      "userId:",
+      userDetails?.id,
+      "addressId:",
+      selectedAddress
+    );
     if (selectedAddress.length < 1) {
       toast.error("Please select an address to continue.");
-      return; 
-    } 
-    
+      return;
+    }
+
     if (!stripe || !elements) {
       toast.error("Stripe is not loaded yet. Please try again.");
       return;
     }
-    
+
     setIsLoading(true);
     try {
-      const res = await axios.post(`${host}/create-checkout-session`, {
-        products: enrichedCart,
-        userId: userDetails?.id,
-        addressId: selectedAddress,
-      },{
-        withCredentials: true,
-      });
+      const res = await axios.post(
+        `${host}/create-checkout-session`,
+        {
+          products: enrichedCart,
+          userId: userDetails?.id,
+          addressId: selectedAddress,
+        },
+        {
+          withCredentials: true,
+        }
+      );
 
+      console.log("OKAY", res);
 
-      console.log("OKAY",res);
-
-      if(res.data){
+      if (res.data) {
         window.location.href = res.data.url;
-      }else{
+      } else {
         toast.error("Failed to create checkout session");
         console.log("No URL returned from Stripe");
         setIsLoading(false);
       }
-  
     } catch (error) {
       setIsLoading(false);
       const errMsg = error?.response?.data?.message || "An error occurred";
@@ -151,7 +156,6 @@ const Checkout = () => {
         </div>
       )}
 
-
       {userDetails ? (
         <div className="">
           <div className="mx-auto max-w-2xl px-4 pb-24 pt-16 max-md:pt-5 sm:px-6 lg:max-w-7xl lg:px-8">
@@ -159,7 +163,6 @@ const Checkout = () => {
 
             <div className="lg:grid lg:grid-cols-2 lg:gap-x-12 xl:gap-x-16 mt-5">
               <div>
-                
                 <div className="mt-10 border-t border-gray-200 pt-10">
                   <h2 className="text-lg font-medium text-gray-900 mb-4">
                     Delivery Information
@@ -180,8 +183,6 @@ const Checkout = () => {
                 </div>
               </div>
 
-
-          
               {/* Order summary */}
               <div className="mt-10 lg:mt-0">
                 <h2 className="text-lg font-medium text-gray-900">
@@ -191,90 +192,91 @@ const Checkout = () => {
                 <div className="mt-4 rounded-lg border border-gray-200 bg-white shadow-sm">
                   <h3 className="sr-only">Items in your cart</h3>
                   <ul role="list" className="divide-y divide-gray-200 px-6">
-                    {cartItems.map((product:CartProduct, productIdx:number) => (
-                      <li key={product.id} className="flex py-6 sm:py-6">
-                        <div className="flex-shrink-0 border rounded-lg">
-                          <img
-                          alt={product.id}
-                            src={product.image_urls[0].url}
-                            className="h-24 w-24 rounded-md object-cover object-center sm:h-48 sm:w-48"
-                          />
-                        </div>
+                    {cartItems.map(
+                      (product: CartProduct, productIdx: number) => (
+                        <li key={product.id} className="flex py-6 sm:py-6">
+                          <div className="flex-shrink-0 border rounded-lg">
+                            <img
+                              alt={product.id}
+                              src={product.image_urls[0].url}
+                              className="h-24 w-24 rounded-md object-cover object-center sm:h-48 sm:w-48"
+                            />
+                          </div>
 
-                        <div className="ml-4 flex flex-1 flex-col justify-between sm:ml-6">
-                          <div className="relative flex justify-between max-xl:flex-col sm:gap-x-6 sm:pr-0">
-                            <div>
-                              <div className="flex justify-between">
-                                <h3 className="text-sm line-clamp-2">
-                                  <a
-                                    // href={product.href}
-                                    href={""}
-
-                                    className="font-medium text-gray-700 hover:text-gray-800"
-                                  >
-                                    {product.name}
-                                  </a>
-                                </h3>
-                              </div>
-                              {/* <div className="mt-1 flex text-sm">
+                          <div className="ml-4 flex flex-1 flex-col justify-between sm:ml-6">
+                            <div className="relative flex justify-between max-xl:flex-col sm:gap-x-6 sm:pr-0">
+                              <div>
+                                <div className="flex justify-between">
+                                  <h3 className="text-sm line-clamp-2">
+                                    <a
+                                      // href={product.href}
+                                      href={""}
+                                      className="font-medium text-gray-700 hover:text-gray-800"
+                                    >
+                                      {product.name}
+                                    </a>
+                                  </h3>
+                                </div>
+                                {/* <div className="mt-1 flex text-sm">
                                 <p className="text-gray-500">
                                   {product.category}
                                 </p>
                               </div> */}
-                              <p className="mt-1 text-sm font-medium text-gray-900">
-                                ${numberWithCommas(product.discounted_price)}
-                              </p>
-                            </div>
-
-                            <div className="mt-4">
-                              <label
-                                htmlFor={`quantity-${productIdx}`}
-                                className="sr-only"
-                              >
-                                Quantity, {product.quantity}
-                              </label>
-                              <div className=" flex gap-4 items-center justify-evenly bg-black/[3%] rounded-lg px-3 py-2 select-none text-sm w-fit">
-                                <FaMinus
-                                  className="flex items-center justify-center text-sm font-semibold text-[#086047] cursor-pointer"
-                                  onClick={() =>
-                                    product.quantity > 1
-                                      ? removeFromCart(product)
-                                      : {}
-                                  }
-                                />
-                                <p className="mx-2 w-3 text-black-50 font-semibold">
-                                  {product.quantity}
+                                <p className="mt-1 text-sm font-medium text-gray-900">
+                                  ${numberWithCommas(product.discounted_price)}
                                 </p>
-                                <FaPlus
-                                  className="flex items-center justify-center text-[#086047] text-sm font-semibold cursor-pointer"
-                                  onClick={() => addToCart(product)}
-                                />
+                              </div>
+
+                              <div className="mt-4">
+                                <label
+                                  htmlFor={`quantity-${productIdx}`}
+                                  className="sr-only"
+                                >
+                                  Quantity, {product.quantity}
+                                </label>
+                                <div className=" flex gap-4 items-center justify-evenly bg-black/[3%] rounded-lg px-3 py-2 select-none text-sm w-fit">
+                                  <FaMinus
+                                    className="flex items-center justify-center text-sm font-semibold text-[#086047] cursor-pointer"
+                                    onClick={() =>
+                                      product.quantity > 1
+                                        ? removeFromCart(product)
+                                        : {}
+                                    }
+                                  />
+                                  <p className="mx-2 w-3 text-black-50 font-semibold">
+                                    {product.quantity}
+                                  </p>
+                                  <FaPlus
+                                    className="flex items-center justify-center text-[#086047] text-sm font-semibold cursor-pointer"
+                                    onClick={() => addToCart(product)}
+                                  />
+                                </div>
                               </div>
                             </div>
+
+                            <p className="mt-4 flex space-x-2 text-sm text-gray-700">
+                              {product.quantity !== 0 ? (
+                                <BsCheck
+                                  className="h-5 w-5 flex-shrink-0 text-green-500"
+                                  aria-hidden="true"
+                                />
+                              ) : (
+                                <BsClock
+                                  className="h-5 w-5 flex-shrink-0 text-gray-300"
+                                  aria-hidden="true"
+                                />
+                              )}
+
+                              <span>
+                                {product.quantity !== 0
+                                  ? "In stock"
+                                  : `Ships in " 14 days"}`}
+                              </span>
+                            </p>
                           </div>
-
-                          <p className="mt-4 flex space-x-2 text-sm text-gray-700">
-                            {product.quantity!==0 ? (
-                              <BsCheck
-                                className="h-5 w-5 flex-shrink-0 text-green-500"
-                                aria-hidden="true"
-                              />
-                            ) : (
-                              <BsClock
-                                className="h-5 w-5 flex-shrink-0 text-gray-300"
-                                aria-hidden="true"
-                              />
-                            )}
-
-                            <span>
-                              {product.quantity!==0
-                                ? "In stock"
-                                : `Ships in " 14 days"}`}
-                            </span>
-                          </p>
-                        </div>
-                      </li>
-                    ))}
+                        </li>
+                      )
+                    )}
                   </ul>
                   <dl className="space-y-6 border-t border-gray-200 px-4 py-6 sm:px-6">
                     <div className="flex items-center justify-between">

@@ -10,18 +10,22 @@ const AdminWallet = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isWithdrawing, setIsWithdrawing] = useState(false);
+    const host =
+    import.meta.env.VITE_NODE_ENV === "PRODUCTION"
+      ? import.meta.env.VITE_BACKEND_URL
+      : "http://localhost:7000";
 
   const fetchInfo = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const [balance,transactions] = await Promise.all([axios.get("https://jamazan-backend-ao9e.onrender.com/balance", {
+      const [balance,transactions] = await Promise.all([axios.get(`${host}/balance`, {
         withCredentials: true,
         headers: {
           'Content-Type': 'application/json',
         }
-      }),axios.get("https://jamazan-backend-ao9e.onrender.com/transactions", {
+      }),axios.get(`${host}/transactions`, {
         withCredentials: true,
         headers: {
           'Content-Type': 'application/json',

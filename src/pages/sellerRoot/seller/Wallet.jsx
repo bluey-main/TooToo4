@@ -17,7 +17,7 @@ const Wallet = () => {
     const [disable,setDisable] = useState(false);
     const [checkingVerification, setCheckingVerification] = useState(false);
     const stripeConnectInstance = useStripeConnect(connectedAccountId);
-        const host = import.meta.env.VITE_NODE_ENV === 'production' 
+        const host = import.meta.env.VITE_NODE_ENV === 'PRODUCTION' 
       ? "https://jamazan-backend-ao9e.onrender.com"
       : "http://localhost:7000";
 
