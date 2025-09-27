@@ -9,9 +9,9 @@ const CheckoutSuccess = () => {
 
 useEffect(() => {
     const status = new URLSearchParams(window.location.search).get("status");
-    const orderId = new URLSearchParams(window.location.search).get("orderId");
+    const purchaseId = new URLSearchParams(window.location.search).get("purchaseId");
 
-    if (!status || !orderId) {
+    if (!status || !purchaseId) {
       console.log("Missing status or orderId");
       return;
     }
@@ -22,8 +22,8 @@ useEffect(() => {
         const { data: order, error } = await supabase
           .from("orders")
           .select("id, payment_status")
-          .eq("id", orderId)
-          .single();
+          .eq("purchase_id", purchaseId)
+        
 
         if (error) {
           console.error("Order lookup failed:", error);
@@ -34,7 +34,7 @@ useEffect(() => {
           console.log("✅ Order exists:", order);
           
           // Only clear cart if order is actually marked paid
-          if (order.payment_status === "paid") {
+          if (order[0].payment_status === "paid") {
             clearCart();
           } else {
             console.log("⚠️ Order not paid yet, not clearing cart");

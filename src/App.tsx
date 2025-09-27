@@ -41,6 +41,7 @@ export interface IProduct {
   description:string;
   created_at:string;
   updated_at:string;  
+  slug?:string;
 }
 
 // Define the type for a single category

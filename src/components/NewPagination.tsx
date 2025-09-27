@@ -53,7 +53,7 @@ const NewPagination: FC<NewPaginationProps> = ({
   }, [currentPage, totalPages]);
 
   return (
-    <ul className="mt-8 flex items-center justify-center gap-3 text-sm text-[#8E15EC]">
+    <ul className="mt-8 flex items-center justify-center gap-3 text-sm text-[#086047]">
       <li
         className={`px-3 py-2.5 flex items-center gap-1.5 xl:gap-2.5 text-xs bg-lightGray rounded-lg ${
           currentPage === 1 ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
@@ -72,7 +72,7 @@ const NewPagination: FC<NewPaginationProps> = ({
           <li
             key={`page-${page}`}
             className={`px-3 py-1.5 rounded cursor-pointer ${
-              currentPage === page ? "bg-[#8E15EC] text-white" : ""
+              currentPage === page ? "bg-[#086047] text-white" : ""
             }`}
             onClick={() => handlePageChange(Number(page))}
           >

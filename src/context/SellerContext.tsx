@@ -47,20 +47,40 @@ interface Variation {
   variation: string;
 }
 
-interface Order {
+export type Order = {
   id: string;
-  product: {
-    price: number;
-    quantity: number;
-    name: string;
+  user_id: string;
+  order_date: string; // ISO date string
+  total_amount: number;
+  status: "pending" | "completed" | "cancelled" | string; // extend as needed
+  delivery_address_id: string;
+  driver_id: string | null;
+  created_at: string; // ISO date string
+  updated_at: string; // ISO date string
+  product: Product;
+  payment_id: string | null;
+  payment_status: "paid" | "pending" | "failed" | string; // extend as needed
+  payment_intent_id: string | null;
+  stripe_customer_id: string | null;
+  stripe_session_id: string | null;
+  purchase_id: string | null;
+
+};
+
+export type Product = {
+  id: string;
+  name: string;
+  image: {
+    url: string;
+    filename: string;
   };
-  addressId: string;
-  userId: string;
-  productSellerId: string;
-  createdOn: {
-    seconds: number;
-  };
-}
+  price: number;
+  category: string;
+  quantity: number;
+  stripeId: string | null;
+  vendorId: string;
+  vendorType: "basic" | "premium" | string; // extend as needed
+};
 
 interface ProductToDeleteDetails {
   productId: string;
@@ -154,6 +174,8 @@ interface SellerContextType {
   fetchAllRelatedOrderFunction: () => Promise<void>;
   getSellerOrders: () => Promise<Order[] | undefined>;
   getCategoriesFromDb: () => Promise<void>;
+  updateOrderStatus: (orderId: string, newStatus: string) => Promise<void>;
+
 }
 
 export const SellerContext = createContext<SellerContextType | null>(null);
@@ -229,6 +251,66 @@ const SellerProvider: React.FC<SellerProviderProps> = ({ children }) => {
   const [order, setOrder] = useState<Order | null>(null);
   const [deliveryAddress, setDeliveryAddress] = useState<any>(null);
   const [doubleConfirmationModal, setDoubleConfirmationModal] = useState(false);
+
+
+  const updateOrderStatus = async (orderId: string, newStatus: string) => {
+  if (!userDetails?.id) {
+    toast.error("You must be logged in as a vendor");
+    return;
+  }
+
+  try {
+    // Show double confirmation modal
+    setDoubleConfirmationModal(true);
+
+    // Wait for vendor confirmation (can be a custom modal)
+    const confirmed = await new Promise<boolean>((resolve) => {
+      // Example: a simple confirmation
+      const confirmed = window.confirm(
+        `Are you sure you want to change the order status to "${newStatus}"?`
+      );
+      resolve(confirmed);
+    });
+
+    if (!confirmed) {
+      toast("Order status change cancelled");
+      return;
+    }
+
+    // Update in Supabase
+    const { error } = await supabase
+      .from("orders")
+      .update({
+        status: newStatus,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", orderId)
+      .eq("vendor_id", userDetails.id); // ensures only vendor can update
+
+    if (error) throw error;
+
+    // Update local state
+    setOrder((prev) =>
+      prev && prev.id === orderId ? { ...prev, status: newStatus } : prev
+    );
+
+    setSellerOrders((prev) =>
+      prev
+        ? prev.map((o) =>
+            o.id === orderId ? { ...o, status: newStatus } : o
+          )
+        : prev
+    );
+
+    toast.success(`Order status updated to "${newStatus}"`);
+  } catch (err) {
+    console.error(err);
+    toast.error("Failed to update order status");
+  } finally {
+    setDoubleConfirmationModal(false);
+  }
+};
+
 
   const getProductDetailsFromDatabase = async (urlParam: string | null) => {
     setIsLoading(true);
@@ -694,7 +776,7 @@ const SellerProvider: React.FC<SellerProviderProps> = ({ children }) => {
     try {
       setLoadingOrder(true);
       const { data, error } = await supabase
-        .from("addresses")
+        .from("delivery_addresses")
         .select("*")
         .eq("id", addressId)
         .single();
@@ -759,8 +841,8 @@ const SellerProvider: React.FC<SellerProviderProps> = ({ children }) => {
     try {
       if (order) {
         console.log("order is loaded");
-        await fetchDeliveryDetails(order.addressId);
-        await fetchUserDetails(order.userId);
+        await fetchDeliveryDetails(order.delivery_address_id);
+        await fetchUserDetails(order.user_id);
       }
       console.log("Checking 12");
     } catch (error) {
@@ -775,7 +857,11 @@ const SellerProvider: React.FC<SellerProviderProps> = ({ children }) => {
       const { data, error } = await supabase
         .from("orders")
         .select("*")
-        .eq("product_seller_id", userDetails.id);
+        .eq("vendor_id", userDetails.id);
+
+        // const { data, error } = await supabase.rpc('get_orders_by_vendor', { vendor: userDetails.id });
+
+        console.log(data)
 
       if (error) throw error;
 
@@ -856,6 +942,7 @@ const SellerProvider: React.FC<SellerProviderProps> = ({ children }) => {
     fetchAllRelatedOrderFunction,
     getSellerOrders,
     getCategoriesFromDb,
+      updateOrderStatus,
   };
 
   return (

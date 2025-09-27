@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useLayoutEffect,
+  useRef,
   useState,
 } from "react";
 import {
@@ -81,6 +82,7 @@ const NavBar = () => {
   const [allProductsNames, setAllProductsNames] = useState<string[]>([]);
   const [filteredResults, setFilteredResults] = useState<string[]>([]);
   const [showSuggestion, setShowSuggestion] = useState<boolean>(false);
+  const productNamesFetched = useRef(false);
 
   useLayoutEffect(() => {
     setactive(
@@ -109,12 +111,10 @@ const NavBar = () => {
   const navigate = useNavigate();
 
   const fetchAllProductNames = useCallback(async (): Promise<void> => {
+    if (productNamesFetched.current) {
+      return;
+    }
     try {
-      if (allProductsNames.length > 0) {
-        setShowSuggestion(true);
-        return;
-      }
-
       const { data, error } = await supabase.from("products").select("name");
       if (error) {
         throw error;
@@ -122,11 +122,22 @@ const NavBar = () => {
       const productNames = data.map((product) => product.name);
       console.log(productNames);
       setAllProductsNames(productNames);
-      setShowSuggestion(true);
+      productNamesFetched.current = true;
     } catch (error) {
       console.error("Error fetching product names:", error);
     }
-  }, [allProductsNames]);
+  }, []);
+
+  useEffect(() => {
+    if (search.length > 0 && allProductsNames.length > 0) {
+      const results = allProductsNames.filter((product) =>
+        product.toLowerCase().includes(search.toLowerCase())
+      );
+      setFilteredResults(results);
+    } else {
+      setFilteredResults([]);
+    }
+  }, [search, allProductsNames]);
 
   const handleKeyPress = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter" && search !== "") {
@@ -137,14 +148,6 @@ const NavBar = () => {
   const handleSearch = (event: ChangeEvent<HTMLInputElement>) => {
     const query = event.target.value;
     setSearch(query);
-    if (query.length > 0) {
-      const results = allProductsNames.filter((product) =>
-        product.toLowerCase().includes(query.toLowerCase())
-      );
-      setFilteredResults(results);
-    } else {
-      setFilteredResults([]);
-    }
   };
 
   const highlightMatch = (
@@ -219,6 +222,7 @@ const NavBar = () => {
                   onKeyDown={handleKeyPress}
                   onFocus={() => {
                     fetchAllProductNames();
+                    setShowSuggestion(true);
                   }}
                   onBlur={() => {
                     setTimeout(() => setShowSuggestion(false), 200); // Delay hiding
