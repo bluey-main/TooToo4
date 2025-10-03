@@ -49,11 +49,11 @@ function Profile() {
       <div className=" bg-white px-2 py-1 rounded-md ">
         <div className=" max-[370px]:flex-col  max-[370px]:items-start  max-[370px]:gap-3  flex justify-between px-1 items-center">
           <section className=" space-y-2">
-            <p className=" font-semibold">
-              Hello, <span>{userDetails ? userDetails.businessName : ""}</span>
+            <p className=" font-semibold text-3xl">
+              Hello, <span>{userDetails ? userDetails.username : ""}</span>
             </p>
             <p className=" text-gray-500 space-x-1 text-sm font-medium">
-              <span>{userDetails ? userDetails.phoneNumber : ""}</span>
+              <span>{userDetails ? userDetails.phone_number : ""}</span>
               <span>|</span>
               <span>{userDetails ? userDetails.email : ""}</span>
             </p>
@@ -69,7 +69,7 @@ function Profile() {
         </div>
         <div className=" flex flex-col md:grid md:grid-cols-2 md:items-center md:gap-4  px-1">
           <section className=" sm:py-2">
-            <WalletCard name={userDetails?.businessName || "User Name"} balance={balance}/>
+            <WalletCard name={userDetails?.username || "User Name"} balance={balance}/>
           </section>
           <section className=" justify-around flex flex-col rounded-md px-3 py-4 h-[132px] bg-gray-50 ">
             <p className=" font-semibold text-gray-600">Orders this month</p>

@@ -10,13 +10,14 @@ import {
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
 import toast from "react-hot-toast";
+import { Order } from "./SellerContext";
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   userDetails: Record<string, any> | null;
   deliveryAddresses: any[];
-  orders: any[];
+  orders: Order[];
   allProducts: any[];
   loading: boolean;
   loadingUserData: boolean;

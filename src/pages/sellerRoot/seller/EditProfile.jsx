@@ -12,9 +12,9 @@ function EditProfile() {
   const [loadingProfileUpdate, setLoadingProfileUpdate] = useState(false);
   const [editProfileDetails, setEditProfileDetails] = useState({
     username: "",
-    firstName: "",
-    lastName: "",
-    phoneNumber: "",
+    first_name: "",
+    last_name: "",
+    phone_number: "",
     email: "",
   });
 
@@ -23,9 +23,9 @@ function EditProfile() {
     if (userDetails) {
       setEditProfileDetails({
         username: userDetails.username || "",
-        firstName: userDetails.firstName || "",
-        lastName: userDetails.lastName || "",
-        phoneNumber: userDetails.phoneNumber || "",
+        first_name: userDetails.first_name || "",
+        last_name: userDetails.last_name || "",
+        phone_number: userDetails.phone_number || "",
         email: userDetails.email || "",
       });
     }
@@ -36,18 +36,18 @@ function EditProfile() {
     try {
       setLoadingProfileUpdate(true);
       const { error } = await supabase
-        .from("users")
+        .from("profiles")
         .update(editProfileDetails)
-        .eq("id", userDetails.uid);
+        .eq("id", userDetails.id);
 
       if (error) {
         throw error;
       }
 
       const { data: userData, error: fetchError } = await supabase
-        .from("users")
+        .from("profiles")
         .select("*")
-        .eq("id", userDetails.uid)
+        .eq("id", userDetails.id)
         .single();
 
       if (fetchError) {
@@ -102,8 +102,8 @@ function EditProfile() {
                   type="text"
                   className=" w-full outline-none border-gray-300 border-[1px] rounded-md bg-white p-1"
                   placeholder="James"
-                  value={editProfileDetails.firstName}
-                  onChange={(e) => handleInputChange("firstName", e)}
+                  value={editProfileDetails.first_name}
+                  onChange={(e) => handleInputChange("first_name", e)}
                 />
               </label>
               <label htmlFor="" className=" space-y-2">
@@ -112,8 +112,8 @@ function EditProfile() {
                   className=" w-full px-2 py-2 border-[1px] border-gray-300 rounded-md  outline-none bg-white p-1"
                   type="text"
                   placeholder="Jacobs"
-                  value={editProfileDetails.lastName}
-                  onChange={(e) => handleInputChange("lastName", e)}
+                  value={editProfileDetails.last_name}
+                  onChange={(e) => handleInputChange("last_name", e)}
                 />
               </label>
             </section>
@@ -124,7 +124,7 @@ function EditProfile() {
                   className=" w-full px-2 py-1 border-[1px] border-gray-300 rounded-md  outline-none bg-white p-1"
                   type="text"
                   placeholder="08000000000"
-                  value={editProfileDetails.phoneNumber}
+                  value={editProfileDetails.phone_number}
                 />
               </label>
               <label htmlFor="" className=" space-y-2">

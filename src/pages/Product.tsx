@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { BsCartPlus, BsChevronRight } from "react-icons/bs";
 import { FaMinus, FaPlus } from "react-icons/fa";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { supabase } from "../lib/supabase";
 import { numberWithCommas } from "../utils/helper";
@@ -47,12 +47,15 @@ const Product: React.FC<ProductProps> = ({ isAdmin = false }) => {
     useState<IParticularProduct | null>(null);
   const [loadingProduct, setLoadingProduct] = useState(false);
   const [liked, setLiked] = useState(false);
+   const [searchParams] = useSearchParams();
+  const s = searchParams.get("s"); // "1" or "0
 
   // const loggedInUser: { uid: string } | null = JSON.parse(
   //   localStorage.getItem("userDetails") || "null"
   // );
   const { id } = useParams<{ id: string }>();
   const cleanSlug = decodeURIComponent(id || "");
+const likeIdParam = ( s === "false"|| !s) ? "product_id" : "slug"
 
   const fetchProduct = async () => {
     if (!id) return;
@@ -114,80 +117,87 @@ const Product: React.FC<ProductProps> = ({ isAdmin = false }) => {
     setLoadingProduct(false);
   };
 
-const checkIfLiked = async () => {
-  if (!userDetails) return;
+  const checkIfLiked = async () => {
+    if (!userDetails) return;
 
-  try {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) return;
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+      if (userError || !user) return;
 
-    const { data, error } = await supabase
-      .from("liked_items")
-      .select("id")
-      .eq("user_id", user.id)
-      .eq("product_id", id)
-      .single();
+      const { data, error } = await supabase
+        .from("liked_items")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq(likeIdParam, id)
+        .single();
 
-    if (error && error.code !== "PGRST116") {
-      console.error("Error fetching like:", error);
+      if (error && error.code !== "PGRST116") {
+        console.error("Error fetching like:", error);
+        return;
+      }
+
+      setLiked(!!data); // true if found, false if not
+    } catch (err) {
+      console.error("Error checking if liked:", err);
+    }
+  };
+
+  const likedProduct = async () => {
+    if (!userDetails) return toast.error("Please login to like the product");
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+    if (userError || !user) {
+      toast.error("You must be logged in to like a product");
       return;
     }
 
-    setLiked(!!data); // true if found, false if not
-  } catch (err) {
-    console.error("Error checking if liked:", err);
-  }
-};
-
-  const likedProduct = async () => {
-  if (!userDetails) return toast.error("Please login to like the product");
-
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-  if (userError || !user) {
-    toast.error("You must be logged in to like a product");
-    return;
-  }
-
-  const { data: likedItem, error: fetchError } = await supabase
-    .from("liked_items")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("product_id", id)
-    .single();
-
-  if (fetchError && fetchError.code !== "PGRST116") {
-    console.error("Fetch error:", fetchError);
-    toast.error("Error fetching liked items");
-    return;
-  }
-
-  if (likedItem) {
-    // unlike
-    const { error: deleteError } = await supabase
+    const { data: likedItem, error: fetchError } = await supabase
       .from("liked_items")
-      .delete()
-      .eq("id", likedItem.id);
+      .select("id")
+      .eq("user_id", user.id)
+      .eq(likeIdParam, cleanSlug)
+      .single();
 
-    if (deleteError) {
-      toast.error("Failed to unlike product");
-    } else {
-      setLiked(false);
-      toast.success("Product unliked");
+    if (fetchError && fetchError.code !== "PGRST116") {
+      console.error("Fetch error:", fetchError);
+      toast.error("Error fetching liked items");
+      return;
     }
-  } else {
-    // like
-    const { error: insertError } = await supabase
-      .from("liked_items")
-      .insert([{ user_id: user.id, product_id: id }]);
 
-    if (insertError) {
-      toast.error("Failed to like product");
+    if (likedItem) {
+      // unlike
+      const { error: deleteError } = await supabase
+        .from("liked_items")
+        .delete()
+        .eq("id", likedItem.id);
+
+      if (deleteError) {
+        toast.error("Failed to unlike product");
+      } else {
+        setLiked(false);
+        toast.success("Product unliked");
+      }
     } else {
-      setLiked(true);
-      toast.success("Product liked");
+      // like
+      const { error: insertError } = await supabase
+        .from("liked_items")
+        .insert([{ user_id: user.id, [likeIdParam]: id }]);
+
+      if (insertError) {
+        toast.error("Failed to like product");
+        console.log(insertError)
+      } else {
+        setLiked(true);
+        toast.success("Product liked");
+      }
     }
-  }
-};
+  };
 
   useEffect(() => {
     fetchProduct();
@@ -252,10 +262,10 @@ const checkIfLiked = async () => {
                   {liked ? <Liked /> : <NotLiked />}
                 </div>
 
-                {selectedProduct?.image_urls?.length > 0 && (
+                {selectedProduct?.image_urls?.length! > 0 && (
                   <img
                     className="rounded-3xl w-full h-full object-contain"
-                    src={selectedProduct.image_urls[indexValue].url}
+                    src={selectedProduct?.image_urls[indexValue]?.url}
                     alt=""
                   />
                 )}
@@ -413,7 +423,7 @@ const checkIfLiked = async () => {
               </div>
             )}
           </div>
-          <RelatedProducts category_id={selectedProduct.category_id}/>
+          <RelatedProducts category_id={selectedProduct.category_id} />
         </>
       ) : (
         <div className=" hidden"></div>

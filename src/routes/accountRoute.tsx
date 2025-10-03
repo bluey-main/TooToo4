@@ -6,9 +6,11 @@ import Account from "../pages/Account";
 import CheckoutSuccess from "../pages/account/CheckoutSuccess";
 import LikedItems from "../pages/account/LikedItems";
 import Notification from "../pages/account/Notification";
-import Order from "../pages/account/Order";
-import OrderHistory from "../pages/account/OrderHistory";
+// import Order from "../pages/account/Order";
+// import OrderHistory from "../pages/account/OrderHistory";
 import { Profile } from "../pages/account/Profile";
+import OrderHistory from "@/pages/account/OrderHistory";
+import Order from "@/pages/account/Order";
 
 export const accountRoute = {
   path: "account",

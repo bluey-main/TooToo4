@@ -6,8 +6,9 @@ import { PiCaretLeftLight } from "react-icons/pi";
 import { useNavigate, useParams } from "react-router";
 // import { db } from "../../utils/firebase";
 // import toast from "react-hot-toast";
-import { timeAgo } from "../../utils/helper";
+import { orderStatus, timeAgo } from "../../utils/helper";
 import { useSeller } from "../../context/SellerContext";
+import { getVendorName, supabase } from "@/lib/supabase";
 
 const Order = () => {
   const { id } = useParams();
@@ -21,11 +22,25 @@ const Order = () => {
     fetchOrder,
   } = useSeller();
 
+  
 
+
+
+  const [vendorName, setVendorName] = useState<string>("");
 
   useEffect(() => {
-    fetchOrder(id);
+    fetchOrder(id || "");
   }, [id]);
+
+  useEffect(() => {
+    if (order?.product?.vendorId) {
+      (async () => {
+        const name = await getVendorName(order.product.vendorId);
+        setVendorName(name);
+      })();
+    }
+  }, [order]);
+
   return (
     <section className="p-7 min-h-[50vh] max-md:p-4 max-[1088px]:flex-col gap-7 max-md:py-4 w-full">
       <div className="flex pb-4 pt-0 max-md:p-0 max-md:pb-4 border-b-default-400 border-b w-full items-center gap-x-4 max-md:flex-col max-md:items-start">
@@ -66,20 +81,16 @@ const Order = () => {
                   <p className="font-semibold text-md">Order</p>
                   <p
                     className={`${
-                      order.deliveryStatus == "pending"
-                        ? "text-orange-400"
-                        : order.deliveryStatus == "cancelled"
-                        ? "text-red-500"
-                        : "text-[#53A178]"
+                     orderStatus(order?.status)
                     } bg-[#F1F1F1] px-2 p-0.5 text-sm rounded-md ml-2 capitalize font-medium`}
                   >
-                    {order.deliveryStatus}
+                    {order.status}
                   </p>
                 </div>
                 <div className="pt-5 text-sm">
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-mamiblack/60">Added</p>
-                    <p className="text-mamiblack">{timeAgo(order.createdOn)}</p>
+                    <p className="text-mamiblack">{timeAgo(order.created_at)}</p>
                   </div>
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-mamiblack/60">Payment Method</p>
@@ -91,7 +102,7 @@ const Order = () => {
                   </div>
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-mamiblack/60">Seller</p>
-                    <p className="text-mamiblack">Home delivery</p>
+                    <p className="text-mamiblack">{vendorName || "Loading..."}</p>
                   </div>
                 </div>
               </div>

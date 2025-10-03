@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 
@@ -14,43 +14,45 @@ import mastercard from "../../../assets/mastercardicon.png";
 import {
   formatDateToDDMMYYYY,
   numberWithCommas,
+  orderStatus,
   timeAgo,
 } from "../../../utils/helper";
 import { useSeller } from "@/context/SellerContext";
 
 function SellerOrder() {
-  const { id } = useParams();
+const { id } = useParams();
   const navigate = useNavigate();
 
   const {
-    // fetchUserDetails,
     loadingOrder,
     orderUserDetails,
-    // setOrderUserDetails,
-    // setLoadingOrder,
     order,
-    // setOrder,
     deliveryAddress,
-    // setdeliveryAddress,
     fetchOrder,
-    // fetchDeliveryDetails,
     subTotalCalculations,
-    // fetchAllRelatedOrderFunction,
+    updateOrderStatus,
   } = useSeller();
 
-  // useEffect(() => {
-  //   if (order) {
-  //     fetchDeliveryDetails(order.addressId);
-  //     fetchUserDetails(order.userId);
-  //     console.log("FROM SELLER ORDER")
-  //     console.log(order);
-  //   }
-  // }, []);
+  const [selectedStatus, setSelectedStatus] = useState("");
 
   useEffect(() => {
-    fetchOrder(id);
+    if (id) fetchOrder(id);
   }, [id]);
 
+  useEffect(() => {
+    if (order?.status) {
+      setSelectedStatus(order.status);
+    }
+  }, [order]);
+
+  const handleStatusChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newStatus = e.target.value;
+    setSelectedStatus(newStatus);
+
+    if (order?.id) {
+      await updateOrderStatus(order.id, newStatus);
+    }
+  };
   return (
     <React.Fragment>
       <div>
@@ -70,14 +72,19 @@ function SellerOrder() {
         </header>
         <section className=" py-5 flex justify-between">
           <select
-            name=""
-            className=" py-1.5  outline-none border-2  text-gray-400  px-1 rounded-lg text-sm"
-            id=""
+          title="status"
+            value={selectedStatus}
+            onChange={handleStatusChange}
+            className="py-1.5 outline-none border-2 text-gray-600 px-2 rounded-lg text-sm"
           >
-            <option value="">Processing</option>
-            <option value="">Completed</option>
+            <option value="processing">Processing</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="shipped">Shipped</option>
+            <option value="delivered">Delivered</option>
           </select>
-          <button className=" border-[2px] px-2 py-1 font-sans rounded-md text-gray-400 text-sm">
+
+          <button className="border-[2px] px-2 py-1 font-sans rounded-md text-gray-400 text-sm">
             Export CSV
           </button>
         </section>
@@ -109,16 +116,16 @@ function SellerOrder() {
                       <p className=" text-gray-500 font-semibold">Name</p>
                       <p>
                         {" "}
-                        {`${deliveryAddress.first_name} ${deliveryAddress.last_name}`}{" "}
+                        {`${deliveryAddress?.first_name} ${deliveryAddress?.last_name}`}{" "}
                       </p>
                     </div>
                     <div className=" flex justify-between">
                       <p className=" text-gray-500 font-semibold">Email</p>
-                      <p>{orderUserDetails.email}</p>
+                      <p>{orderUserDetails?.email}</p>
                     </div>
                     <div className=" flex justify-between">
                       <p className=" text-gray-500 font-semibold">Phone</p>
-                      <p>{deliveryAddress.phone_number}</p>
+                      <p>{deliveryAddress?.phone_number}</p>
                     </div>
                   </main>
                 </section>
@@ -127,17 +134,15 @@ function SellerOrder() {
                     <BsBagCheck className=" bg-gray-200 px-1 rounded-full text-2xl" />
                     <span className=" text-xs">
                       Order &nbsp;| &nbsp;
-                      {order.deliveryStatus == "delivered" ? (
-                        <span className=" text-green-400">Completed</span>
-                      ) : (
-                        <span className=" text-yellow-400">Pending</span>
-                      )}
+                      
+                      <span className={`text-green-400 ${orderStatus(order?.status.toLowerCase())}`}>{order?.status}</span>
+                      
                     </span>
                   </header>
                   <main className=" text-xs space-y-2">
                     <div className=" flex justify-between">
                       <p className=" text-gray-500 font-semibold">Added</p>
-                      <p>{timeAgo(order.createdOn)}</p>
+                      <p>{timeAgo(order?.created_at)}</p>
                     </div>
                     <div className=" flex justify-between">
                       <p className=" text-gray-500 font-semibold">
@@ -159,15 +164,15 @@ function SellerOrder() {
                   <main className=" text-xs space-y-2">
                     <div className=" flex justify-between">
                       <p className=" text-gray-500 font-semibold">Addres</p>
-                      <p>{deliveryAddress.street}</p>
+                      <p>{deliveryAddress?.address_line_1}</p>
                     </div>
                     <div className=" flex justify-between">
                       <p className=" text-gray-500 font-semibold">City</p>
-                      <p>{deliveryAddress.city}</p>
+                      <p>{deliveryAddress?.city}</p>
                     </div>
                     <div className=" flex justify-between">
                       <p className=" text-gray-500 font-semibold">State</p>
-                      <p>Lagos</p>
+                       <p>{deliveryAddress?.state}</p>
                     </div>
                   </main>
                 </section>
@@ -235,7 +240,7 @@ function SellerOrder() {
                     </header>
                     <p className=" px-10">Customer placed order</p>
                     <p className=" px-10">
-                      {formatDateToDDMMYYYY(order.createdOn)}
+                      {formatDateToDDMMYYYY(order?.created_at)}
                     </p>
                   </section>
                   <section className=" text-gray-500 text-sm space-y-2">
@@ -244,11 +249,11 @@ function SellerOrder() {
                       <span className=" font-medium text-sm">Processing</span>
                     </header>
                     <p className=" px-10">
-                      Seller has received and processed order
+                      Seller has received and {order?.status} order
                     </p>
-                    <p className=" px-10">08/08/2023</p>
+                    <p className=" px-10">{formatDateToDDMMYYYY(order?.updated_at)}</p>
                   </section>
-                  <section className=" text-gray-500 text-sm space-y-2">
+                  {/* <section className=" text-gray-500 text-sm space-y-2">
                     <header className=" text-black flex items-center gap-3">
                       <TbCurrentLocation className=" bg-gray-200 p-1 rounded-full text-3xl" />
                       <span className=" font-medium text-sm">IPC Center</span>
@@ -277,7 +282,7 @@ function SellerOrder() {
                       Item processed and departs IPC center
                     </p>
                     <p className=" px-10">--/--/----</p>
-                  </section>
+                  </section> */}
                 </div>
               </div>
             </>

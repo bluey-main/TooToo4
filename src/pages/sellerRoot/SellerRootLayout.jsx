@@ -32,8 +32,7 @@ const SellerRootLayout = () => {
 
   // Handle authentication and role-based access
   useEffect(() => {
-
-    console.log("from sellerrootlayout")
+    console.log("from sellerrootlayout");
     // Don't run redirect logic if we're still loading user data
     if (loading) return;
 
@@ -46,15 +45,23 @@ const SellerRootLayout = () => {
     // If user is logged in but userDetails isn't loaded yet, wait
     if (!userDetails) return;
 
-    // If user is logged in but not a seller, redirect to profile
-    if (userDetails.role !== "seller") {
-      navigate("/account/profile");
-      toast.error("You have to be a seller to access seller's panel.");
-      return;
+    if (userDetails) {
+      if (userDetails.role == "seller" && !userDetails.username) {
+        navigate("profile/edit-profile");
+        toast.error("Add a username");
+        return;
+      }
+
+      // If user is logged in but not a seller, redirect to profile
+      if (userDetails.role !== "seller") {
+        navigate("/account/profile");
+        toast.error("You have to be a seller to access seller's panel.");
+        return;
+      }
     }
 
     // If we reach here, user is a valid seller - no redirect needed
-  }, [user, userDetails, loading,]);
+  }, [ loading]);
 
   // Show loading state while checking authentication
   if (loading || (user && !userDetails)) {

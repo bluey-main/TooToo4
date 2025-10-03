@@ -1,117 +1,83 @@
 import { useEffect, useState } from "react";
 import NewPagination from "../components/NewPagination";
-// import FilterSidebar from "../components/categories/Sidebar";
-import { numberWithCommas } from "../utils/helper";
 import { useParams } from "react-router";
-// import { useUser } from "../context/UserContext";
 import { supabase } from "../lib/supabase";
-import { useAuth } from "@/context/AuthContext";
 import ProductCard from "@/components/ProductCard";
 import ProductLoader from "@/components/ProductLoader";
-
-// Define product type
-interface Product {
-  id: string;
-  name: string;
-  imageUrls: string[];
-  category: string;
-  price: number;
-  discountedPrice: number;
-  discountRate: string;
-}
+import { IProduct } from "@/App";
 
 function SearchProducts() {
-  const [items, setItems] = useState<Product[]>([]);
+  const { id } = useParams<{ id: string }>();
+  const [items, setItems] = useState<IProduct[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(0);
+  const [totalItems, setTotalItems] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const [lastDocs, setLastDocs] = useState<QueryDocumentSnapshot<DocumentData>[]>([]);
-  const { id } = useParams<{ id: string }>();
-  const { allProducts } = useAuth(); // Assuming this is typed elsewhere
+  const [searchTerm, setSearchTerm] = useState<string>(id || "");
 
-  const pageSize = 102;
+  const pageSize = 2;
 
   useEffect(() => {
-    setCurrentPage(1);
+    setSearchTerm(id || "");
   }, [id]);
 
   useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+  // Calculate total pages
+  useEffect(() => {
     const calculateTotalPages = async () => {
+      if (!searchTerm) {
+        setTotalPages(0);
+        setTotalItems(0);
+        return;
+      }
       try {
-        const lowercasedId = id?.toLowerCase() || "";
-
-        const { count: nameCount, error: nameError } = await supabase
+        const { count, error } = await supabase
           .from("products")
-          .select("id", { count: "exact" })
-          .ilike("name", `%${lowercasedId}%`);
+          .select("id", { count: "exact", head: true })
+          .or(`name.ilike.%${searchTerm}%,tags.cs.{"${searchTerm}"}`);
 
-        const { count: tagsCount, error: tagsError } = await supabase
-          .from("products")
-          .select("id", { count: "exact" })
-          .contains("tags", [lowercasedId]);
+        if (error) throw error;
 
-        const { count: keywordsCount, error: keywordsError } = await supabase
-          .from("products")
-          .select("id", { count: "exact" })
-          .contains("searchKeywords", [lowercasedId]);
-
-        if (nameError || tagsError || keywordsError) {
-          throw nameError || tagsError || keywordsError;
-        }
-
-        const totalDocuments = (nameCount || 0) + (tagsCount || 0) + (keywordsCount || 0);
-        const totalPages = Math.ceil(totalDocuments / pageSize);
-
-        setTotalPages(totalPages);
+        const totalDocuments = count || 0;
+        setTotalItems(totalDocuments);
+        setTotalPages(Math.ceil(totalDocuments / pageSize));
       } catch (error) {
         console.error("Error calculating total pages:", error);
       }
     };
 
     calculateTotalPages();
-  }, [id]);
+  }, [searchTerm]);
 
+  // Fetch paginated data
   const fetchData = async (pageNumber: number) => {
     setLoading(true);
+    if (!searchTerm) {
+      setItems([]);
+      setLoading(false);
+      return;
+    }
 
-    const lowercasedId = id?.toLowerCase() || "";
-    const itemsPerPage = pageSize;
+    const from = (pageNumber - 1) * pageSize;
+    const to = from + pageSize - 1;
 
     try {
-      const from = (pageNumber - 1) * itemsPerPage;
-      const to = from + itemsPerPage - 1;
-
-      const { data: nameResults, error: nameError } = await supabase
+      const { data, error } = await supabase
         .from("products")
         .select("*")
-        .ilike("name", `%${lowercasedId}%`)
+        .or(`name.ilike.%${searchTerm}%,tags.cs.{"${searchTerm}"}`)
+        .order("created_at", { ascending: false })
         .range(from, to);
 
-      const { data: tagsResults, error: tagsError } = await supabase
-        .from("products")
-        .select("*")
-        .contains("tags", [lowercasedId])
-        .range(from, to);
+      if (error) throw error;
 
-      const { data: keywordsResults, error: keywordsError } = await supabase
-        .from("products")
-        .select("*")
-        .contains("searchKeywords", [lowercasedId])
-        .range(from, to);
-
-      if (nameError || tagsError || keywordsError) {
-        throw nameError || tagsError || keywordsError;
-      }
-
-      const allResults = [...(nameResults || []), ...(tagsResults || []), ...(keywordsResults || [])];
-      const uniqueResults = allResults.filter(
-        (item, index, self) => index === self.findIndex((v) => v.id === item.id)
-      );
-
-      setItems(uniqueResults as Product[]);
+      setItems((data as IProduct[]) || []);
     } catch (error) {
       console.error("Error fetching data:", error);
+      setItems([]);
     } finally {
       setLoading(false);
     }
@@ -119,7 +85,7 @@ function SearchProducts() {
 
   useEffect(() => {
     fetchData(currentPage);
-  }, [currentPage, id, searchTerm]);
+  }, [currentPage, searchTerm]);
 
   const handlePageChange = (pageNumber: number) => {
     if (pageNumber > 0 && pageNumber <= totalPages) {
@@ -134,10 +100,13 @@ function SearchProducts() {
           <span>Home</span> <span className="text-xs">{">"}</span>{" "}
           <span className="font-medium">{id || ""}</span>
         </p>
-        <p>{`Showing ${(currentPage - 1) * pageSize + 1} - ${Math.min(
-          currentPage * pageSize,
-          items.length
-        )} of ${items.length}`}</p>
+        <p>
+          {totalItems > 0 &&
+            `Showing ${(currentPage - 1) * pageSize + 1} - ${Math.min(
+              currentPage * pageSize,
+              totalItems
+            )} of ${totalItems}`}
+        </p>
       </div>
 
       <div className="mb-4">
@@ -145,8 +114,8 @@ function SearchProducts() {
           type="text"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Search by name"
-          className="border rounded px-4 py-2"
+          placeholder="Search by name or tag"
+          className="border rounded px-4 py-2 w-full"
         />
       </div>
 
@@ -159,29 +128,22 @@ function SearchProducts() {
               ))
             ) : items.length > 0 ? (
               items.map((product) => (
-                <ProductCard
-                  id={product.id}
-                  name={product.name}
-                  key={product.id}
-                  image={product.imageUrls}
-                  category={product.category}
-                  price={numberWithCommas(product.discountedPrice)}
-                  discount={product.discountRate}
-                  slashedPrice={numberWithCommas(product.price)}
-                />
+                <ProductCard key={product.id} product={product} />
               ))
             ) : (
-              <div className="col-span-4 text-center bg-red-0">
+              <div className="col-span-4 text-center">
                 <p>No Products Found</p>
               </div>
             )}
           </div>
 
-          <NewPagination
-            currentPage={currentPage}
-            handlePageChange={handlePageChange}
-            totalPages={totalPages}
-          />
+          {totalPages > 1 && (
+            <NewPagination
+              currentPage={currentPage}
+              handlePageChange={handlePageChange}
+              totalPages={totalPages}
+            />
+          )}
         </div>
       </div>
     </section>
