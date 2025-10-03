@@ -24,7 +24,8 @@ function Profile() {
     const fetchVendorBalance = async()=>{
       try{
         const response = await axios.post(`${host}/vendor-balance`,{
-          stripeId:userDetails.stripeAccountId
+          stripeId:userDetails.stripe_account_id
+
         },{
           withCredentials:true
         });
