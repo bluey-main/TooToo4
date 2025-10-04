@@ -38,7 +38,7 @@ const Checkout = () => {
         try {
           const { data: sellerInfo, error } = await supabase
             .from("profiles")
-            .select("stripeAccountId, vendorType")
+            .select("stripe_account_id, vendor_type")
             .eq("id", item.seller_id)
             .single();
 
@@ -49,8 +49,8 @@ const Checkout = () => {
 
           return {
             ...item,
-            stripeId: sellerInfo?.stripeAccountId,
-            vendorType: sellerInfo?.vendorType || "basic",
+            stripeId: sellerInfo?.stripe_account_id,
+            vendorType: sellerInfo?.vendor_type || "basic",
           };
         } catch (error) {
           console.error(
@@ -65,13 +65,13 @@ const Checkout = () => {
         }
       })
     );
-    console.log(cartItemsWithStripeId);
+    console.log("ttt",cartItemsWithStripeId);
     setEnrichedCart(cartItemsWithStripeId);
   };
 
   useEffect(() => {
     updateCartWithStripeId();
-  }, []);
+  }, [cartItems]);
 
   useEffect(() => {
     const sessionId = new URLSearchParams(window.location.search).get(
@@ -99,6 +99,7 @@ const Checkout = () => {
   }, []);
 
   const makePayment = async () => {
+    console.log("CART CHECK",cartItems);
     console.log(
       "products:",
       enrichedCart,

@@ -83,8 +83,8 @@ export const AddAccountInfo = () => {
       toast.success("Account information saved successfully");
       
       // Navigate back instead of reloading the page
-      navigate(-1);
-      window.location.reload();
+      navigate("/account/profile/add-new-address");
+      // window.location.reload();
 
     } catch (error) {
       console.error("Error updating profile:", error);

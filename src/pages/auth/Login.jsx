@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import AuthButton from "../../components/Buttons/auth_button";
 import AuthHeading from "../../components/auth/auth_heading";
 import { getName } from "../../utils/helper";
@@ -134,7 +134,7 @@ export const Login = () => {
           </p>
         </div>
       </div>
-      <div className=" px-5">
+      <div className=" px-5 pt-5 pb-10">
         <button onClick={handleGoogleSignUp}
             className="w-full flex gap-5 items-center justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-100"
         >

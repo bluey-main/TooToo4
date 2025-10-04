@@ -76,7 +76,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
       toast.success("Check your email for the confirmation link!");
     } catch (error: any) {
-      toast.error(error.message || "Failed to sign up");
+      console.log(error.message);
+      toast.error("Failed to sign up");
     }
   }, []);
 

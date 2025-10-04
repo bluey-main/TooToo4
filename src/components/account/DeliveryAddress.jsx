@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { useEffect, useState } from "react";
 import Dropdown from "../Dropdown/dropdown";
 import { useNavigate } from "react-router";

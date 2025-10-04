@@ -80,7 +80,7 @@ export const AddDeliveryAddress = () => {
         toast.success("Address saved successfully");
         // fetchAddresses();
         clearFields();
-        navigate(-1);
+        navigate("/account/profile/");
       } catch (error) {
         setSaving(false);
         console.log(error);
